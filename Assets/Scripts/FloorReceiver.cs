@@ -52,7 +52,7 @@ public class FloorReceiver : ReceiveOscBehaviourBase {
 			cmass += (new Vector3( 1, 0,  1) * 0.46f + tileCenter) * fsrRaw[i, 2];
 			cmass += (new Vector3( 1, 0, -1) * 0.46f + tileCenter) * fsrRaw[i, 3];
 			if (fsrTile [i] > 20000 && spawened[i] == false) {
-				var c = Instantiate(chunk, new Vector3(0, 0, 0), Quaternion.identity) as GameObject;
+				var c = Instantiate(chunk, new Vector3(0, 1, 0), Quaternion.identity) as GameObject;
 				c.GetComponent<Rigidbody>().AddForce(new Vector3(0, 200, 0) + cmass * 0.005f);
 				spawened[i] = true;
 			} else if (fsrTile [i] <= 20000) {
