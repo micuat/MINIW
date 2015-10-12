@@ -7,6 +7,8 @@ public class FloorReceiver : ReceiveOscBehaviourBase {
 	public GameObject chunk;
 	bool[] spawened = new bool[4];
 
+    public GameObject Voronoi;
+
 	protected override void ReceiveMessage (OscMessage message) {
 
 		if (message.Count != 16) 
@@ -53,8 +55,10 @@ public class FloorReceiver : ReceiveOscBehaviourBase {
 			cmass += (new Vector3( 1, 0, -1) * 0.46f + tileCenter) * fsrRaw[i, 3];
 			if (fsrTile [i] > 20000 && spawened[i] == false) {
 				var c = Instantiate(chunk, new Vector3(0, 1, 0), Quaternion.identity) as GameObject;
-				c.GetComponent<Rigidbody>().AddForce(new Vector3(0, 200, 0) + cmass * 0.005f);
+				c.GetComponent<Rigidbody>().AddForce(new Vector3(0, 2, 0) + cmass * 0.00005f);
 				spawened[i] = true;
+
+                Voronoi.SendMessage("CrackReceived", cmass);
 			} else if (fsrTile [i] <= 20000) {
 				spawened[i] = false;
 			}
