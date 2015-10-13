@@ -37,7 +37,7 @@ public class FractureChunk : MonoBehaviour
             rigidBody.isKinematic = false;
             rigidBody.useGravity = true;
             rigidBody.AddForce(impactPoint);
-            rigidBody.AddTorque(new Vector3(100, 0, 0));
+            rigidBody.AddTorque(new Vector3(Random.Range(1000000, 2000000), 0, Random.Range(1000000, 2000000)));
             c.GetComponent<MeshCollider>().sharedMesh = meshDouble;
             c.GetComponent<MeshFilter>().sharedMesh = meshDouble;
 
