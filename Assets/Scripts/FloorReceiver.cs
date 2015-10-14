@@ -8,15 +8,27 @@ public class FloorReceiver : ReceiveOscBehaviourBase {
 	bool[] spawened = new bool[4];
 
     public GameObject Voronoi;
+
+    private float speed = -1.5f;
+    private int limit = 4;
    
     void Update()
     {
         if(Input.GetKeyDown(KeyCode.Alpha7))
         {
-            Vector3 cmass = new Vector3(0, 0.5f, 0.5f);
-            var c = Instantiate(chunk, new Vector3(0, 1, 0), Quaternion.identity) as GameObject;
-            c.GetComponent<Rigidbody>().AddForce(new Vector3(0, 2, 0) + cmass);
+            var c = Instantiate(chunk, GameObject.FindGameObjectWithTag("MainCamera").transform.localPosition, Quaternion.identity) as GameObject;
+            c.GetComponent<Rigidbody>().AddForce(new Vector3(0, 0.5f, 4f));
+            c.GetComponent<Rigidbody>().AddTorque(new Vector3(10, 0, 0));
         }
+
+        Vector3 moveDir = new Vector3(1, 0 ,0);
+
+        if (Mathf.Abs(GameObject.FindGameObjectWithTag("Duck").transform.localPosition.x) >= limit)
+        {
+            speed *= -1;
+            Debug.Log(limit + " " + speed);
+        }
+        GameObject.FindGameObjectWithTag("Duck").transform.localPosition += moveDir * speed * Time.deltaTime;
 
     }
 
@@ -28,6 +40,13 @@ public class FloorReceiver : ReceiveOscBehaviourBase {
 			
 			return; 
 		}
+
+        int x_value = 0;
+        int y_value = 0;
+
+        CenterOfPressure(message, out x_value, out y_value);
+
+
 
 		int[] fsrTile = new int[4];
 		int[,] fsrRaw = new int[4, 4];
@@ -75,4 +94,20 @@ public class FloorReceiver : ReceiveOscBehaviourBase {
 			}
 		}
 	}
+
+    private void CenterOfPressure(OscMessage message, out int x, out int y)
+    {
+        int tot = 0;
+
+        for(int i = 1; i < 4; i += 2)
+        {
+            for(int j = 0; j <= 4; j++)
+            {
+                tot = (int)message[i * 4 + j];
+            }
+        }
+
+        x = (int)(((int)message[3 * 4 + 2] + (int)message[3 * 4 + 3] + (int)message[1 * 4 + 0] + (int)message[1 * 4 + 1] + 2 * ((int)message[1 * 4 + 2] + (int)message[1 * 4 + 3])) / tot);
+        y = (int)(((int)message[3 * 4 + 0] + (int)message[3 * 4 + 3] + (int)message[1 * 4 + 0] + (int)message[1 * 4 + 3]) / tot);
+    }
 }
