@@ -4,14 +4,21 @@ using Rug.Osc;
 
 public class FloorReceiver : ReceiveOscBehaviourBase {
 
+    [Header("Haptic Parameters")]
+    public int CloserThreshold = 20000;
+    public int FartherThreshold = 30000;
+    public int SpawnThreshold = 15000;
+
+    [Header("Game Parameters")]
     public GameObject chunk;
-    bool spawned = false;
-
-    public GameObject Voronoi;
-
-    private float speed = -1.5f;
+    private bool spawned = false;
+    public float Speed = -1f;
     private int limit = 4;
-   
+
+    float angle = 0;
+    float speed = (Mathf.PI) / 2; //2*PI in degress is 360, so you get 5 seconds to complete a circle
+    float radius = 4;
+
     void Update()
     {
         if(Input.GetKeyDown(KeyCode.Alpha7))
@@ -21,14 +28,57 @@ public class FloorReceiver : ReceiveOscBehaviourBase {
             c.GetComponent<Rigidbody>().AddTorque(new Vector3(10, 0, 0));
         }
 
-        Vector3 moveDir = new Vector3(1, 0 ,0);
+        Vector3 moveDir = new Vector3(1, 0, 0);
 
-        if (Mathf.Abs(GameObject.FindGameObjectWithTag("Duck").transform.localPosition.x) >= limit)
+        //if (Mathf.Abs(GameObject.FindGameObjectWithTag("Duck").transform.localPosition.x) >= limit)
+        //{
+        //    Speed *= -1;
+        //}
+        //GameObject.FindGameObjectWithTag("Duck").transform.localPosition += moveDir * Speed * Time.deltaTime;
+
+
+
+
+
+
+
+        
+        if(Mathf.Abs(GameObject.FindGameObjectWithTag("Duck").transform.localPosition.x) < (limit - 1))
         {
-            speed *= -1;
-            Debug.Log(limit + " " + speed);
+            angle = 0;
+            GameObject.FindGameObjectWithTag("Duck").transform.localPosition += moveDir * Speed * Time.deltaTime;
         }
-        GameObject.FindGameObjectWithTag("Duck").transform.localPosition += moveDir * speed * Time.deltaTime;
+        if (Mathf.Abs(GameObject.FindGameObjectWithTag("Duck").transform.localPosition.x) >= (limit - 1) && angle < 90)
+        {
+            angle -= speed * Time.deltaTime; //if you want to switch direction, use -= instead of +=
+            float x = Mathf.Cos(angle) * radius;
+            float y = Mathf.Sin(angle) * radius;
+            Vector3 v = new Vector3(x, 0, y);
+            GameObject.FindGameObjectWithTag("Duck").transform.localPosition += moveDir;
+        }
+        if(angle >= 90)
+        {
+            Speed *= -1;
+        }
+        // GameObject.FindGameObjectWithTag("Duck").transform.localPosition += moveDir * Speed * Time.deltaTime;
+       
+
+
+
+
+
+
+        //angle -= speed * Time.deltaTime; //if you want to switch direction, use -= instead of +=
+        //float x = Mathf.Cos(angle) * radius;
+        //float y = Mathf.Sin(angle) * radius;
+        //Vector3 moveDir = new Vector3(x, 0, y);
+
+        //if (Mathf.Abs(GameObject.FindGameObjectWithTag("Duck").transform.localPosition.x) >= limit)
+        //{
+        //    Speed *= -1;
+        //}
+        //// GameObject.FindGameObjectWithTag("Duck").transform.localPosition += moveDir * Speed * Time.deltaTime;
+        //GameObject.FindGameObjectWithTag("Duck").transform.localPosition = moveDir;
 
     }
 
@@ -47,7 +97,7 @@ public class FloorReceiver : ReceiveOscBehaviourBase {
 
         CenterOfPressure(message, out x_value, out y_value, out tot);
 
-        if (tot > 20000 && spawned == false)
+        if (tot > CloserThreshold && spawned == false)
         {
             var pos = GameObject.FindGameObjectWithTag("MainCamera").transform.localPosition;
             pos.x = Remap(x_value, 0, 2, -4, 4);
@@ -57,7 +107,7 @@ public class FloorReceiver : ReceiveOscBehaviourBase {
 
             spawned = true;
         }
-        else if(tot < 15000)
+        else if(tot < SpawnThreshold)
         {
             spawned = false;
         }
