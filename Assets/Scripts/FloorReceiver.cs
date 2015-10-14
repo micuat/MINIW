@@ -5,7 +5,7 @@ using Rug.Osc;
 public class FloorReceiver : ReceiveOscBehaviourBase {
 
     public GameObject chunk;
-    bool[] spawened = new bool[4];
+    bool spawned = false;
 
     public GameObject Voronoi;
 
@@ -43,63 +43,29 @@ public class FloorReceiver : ReceiveOscBehaviourBase {
 
         float x_value = 0;
         float y_value = 0;
+        int tot;
 
-        CenterOfPressure(message, out x_value, out y_value);
+        CenterOfPressure(message, out x_value, out y_value, out tot);
 
-        var c = Instantiate(chunk, GameObject.FindGameObjectWithTag("MainCamera").transform.localPosition, Quaternion.identity) as GameObject;
-        c.GetComponent<Rigidbody>().AddForce(new Vector3(Remap(x_value, -4, 4, 0, 2), 0.5f, 4f));
-        c.GetComponent<Rigidbody>().AddTorque(new Vector3(10, 0, 0));
+        if (tot > 20000 && spawned == false)
+        {
+            var pos = GameObject.FindGameObjectWithTag("MainCamera").transform.localPosition;
+            pos.x = Remap(x_value, 0, 2, -4, 4);
+            var c = Instantiate(chunk, pos, Quaternion.identity) as GameObject;
+            c.GetComponent<Rigidbody>().AddForce(new Vector3(0, 0.5f, 4f));
+            c.GetComponent<Rigidbody>().AddTorque(new Vector3(10, 0, 0));
 
-        //int[] fsrTile = new int[4];
-        //int[,] fsrRaw = new int[4, 4];
-        //for(int i = 0; i < 4; i++)
-        //{
-        //    fsrTile[i] = 0;
-        //    for(int j = 0; j < 4; j++)
-        //    {
-        //        fsrTile[i] += (int)message[i * 4 + j];
-        //        fsrRaw[i, j] = (int)message[i * 4 + j];
-        //    }
-        //}
-
-        //Debug.Log(fsrTile[0] + " " + fsrTile[1] + " " + fsrTile[2] + " " + fsrTile[3]);
-
-        //for (int i = 0; i < 4; i++) {
-        //    Vector3 cmass = new Vector3();
-        //    Vector3 tileCenter = new Vector3();
-        //    switch(i) {
-        //    case 0:
-        //        tileCenter += new Vector3( 0.5f, 0, -0.5f);
-        //        break;
-        //    case 1:
-        //        tileCenter += new Vector3( 0.5f, 0,  0.5f);
-        //        break;
-        //    case 2:
-        //        tileCenter += new Vector3(-0.5f, 0, -0.5f);
-        //        break;
-        //    case 3:
-        //        tileCenter += new Vector3(-0.5f, 0, 0.5f);
-        //        break;
-        //    }
-        //    cmass += (new Vector3(-1, 0, -1) * 0.46f + tileCenter) * fsrRaw[i, 0];
-        //    cmass += (new Vector3(-1, 0,  1) * 0.46f + tileCenter) * fsrRaw[i, 1];
-        //    cmass += (new Vector3( 1, 0,  1) * 0.46f + tileCenter) * fsrRaw[i, 2];
-        //    cmass += (new Vector3( 1, 0, -1) * 0.46f + tileCenter) * fsrRaw[i, 3];
-        //    if (fsrTile [i] > 20000 && spawened[i] == false) {
-        //        var c = Instantiate(chunk, new Vector3(0, 1, 0), Quaternion.identity) as GameObject;
-        //        c.GetComponent<Rigidbody>().AddForce(new Vector3(0, 2, 0) + cmass * 0.00005f);
-        //        spawened[i] = true;
-
-        //        //Voronoi.SendMessage("CrackReceived", cmass);
-        //    } else if (fsrTile [i] <= 20000) {
-        //        spawened[i] = false;
-        //    }
-        //}
+            spawned = true;
+        }
+        else if(tot < 15000)
+        {
+            spawned = false;
+        }
     }
 
-    private void CenterOfPressure(OscMessage message, out float x, out float y)
+    private void CenterOfPressure(OscMessage message, out float x, out float y, out int tot)
     {
-        int tot = 0;
+        tot = 0;
 
         int[] frontTiles = {1, 3};
         for(int i = 0; i < frontTiles.Length; i++)
