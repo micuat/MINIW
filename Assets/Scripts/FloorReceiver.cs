@@ -15,6 +15,12 @@ public class FloorReceiver : ReceiveOscBehaviourBase {
     public float Speed = -1f;
     private int limit = 4;
 
+    private Vector3 start = new Vector3(-4, -0.79f, 0);
+    private Vector3 end = new Vector3(-4, 0.79f, 2);
+    Vector3 bending = Vector3.up;
+    float timeToTravel = 2;
+
+
     float angle = 0;
     float speed = (Mathf.PI) / 2; //2*PI in degress is 360, so you get 5 seconds to complete a circle
     float radius = 4;
@@ -37,31 +43,47 @@ public class FloorReceiver : ReceiveOscBehaviourBase {
         //GameObject.FindGameObjectWithTag("Duck").transform.localPosition += moveDir * Speed * Time.deltaTime;
 
 
+        //if (Mathf.Abs(GameObject.FindGameObjectWithTag("Duck").transform.localPosition.x) < (limit - 1))
+        //{
+        //    Vector3 startWorld = transform.TransformDirection(start);
+        //    Vector3 endtWorld = transform.TransformDirection(end);
+
+        //    float timeStamp = Time.time;
+        //    while (Time.time < timeStamp + timeToTravel)
+        //    {
+        //        Vector3 currentPos = Vector3.Lerp(startWorld, endtWorld, (Time.time - timeStamp) / timeToTravel);
+
+        //        currentPos.x += bending.x * Mathf.Sin(Mathf.Clamp01((Time.time - timeStamp) / timeToTravel) * Mathf.PI);
+        //        currentPos.y += bending.y * Mathf.Sin(Mathf.Clamp01((Time.time - timeStamp) / timeToTravel) * Mathf.PI);
+        //        currentPos.z += bending.z * Mathf.Sin(Mathf.Clamp01((Time.time - timeStamp) / timeToTravel) * Mathf.PI);
+
+        //        GameObject.FindGameObjectWithTag("Duck").transform.position = currentPos;
+        //    }
+        //}
 
 
 
 
 
-        
-        if(Mathf.Abs(GameObject.FindGameObjectWithTag("Duck").transform.localPosition.x) < (limit - 1))
-        {
-            angle = 0;
-            GameObject.FindGameObjectWithTag("Duck").transform.localPosition += moveDir * Speed * Time.deltaTime;
-        }
-        if (Mathf.Abs(GameObject.FindGameObjectWithTag("Duck").transform.localPosition.x) >= (limit - 1) && angle < 90)
-        {
-            angle -= speed * Time.deltaTime; //if you want to switch direction, use -= instead of +=
-            float x = Mathf.Cos(angle) * radius;
-            float y = Mathf.Sin(angle) * radius;
-            Vector3 v = new Vector3(x, 0, y);
-            GameObject.FindGameObjectWithTag("Duck").transform.localPosition += moveDir;
-        }
-        if(angle >= 90)
-        {
-            Speed *= -1;
-        }
+        //if (Mathf.Abs(GameObject.FindGameObjectWithTag("Duck").transform.localPosition.x) < (limit - 1))
+        //{
+        //    angle = 0;
+        //    GameObject.FindGameObjectWithTag("Duck").transform.localPosition += moveDir * Speed * Time.deltaTime;
+        //}
+        //if (Mathf.Abs(GameObject.FindGameObjectWithTag("Duck").transform.localPosition.x) >= (limit - 1) && angle < 90)
+        //{
+        //    angle -= speed * Time.deltaTime; //if you want to switch direction, use -= instead of +=
+        //    float x = Mathf.Cos(angle) * radius;
+        //    float y = Mathf.Sin(angle) * radius;
+        //    Vector3 v = new Vector3(x, 0, y);
+        //    GameObject.FindGameObjectWithTag("Duck").transform.localPosition += moveDir;
+        //}
+        //if(angle >= 90)
+        //{
+        //    Speed *= -1;
+        //}
         // GameObject.FindGameObjectWithTag("Duck").transform.localPosition += moveDir * Speed * Time.deltaTime;
-       
+
 
 
 
