@@ -4,7 +4,7 @@ using System.Collections;
 public class Test : MonoBehaviour {
 
     bool isHit = false;
-    public int dieCountMax = 1000000;
+    public int Time = 5;
     int dieCount = 0;
 
     void OnCollisionEnter(Collision collision)
@@ -16,17 +16,14 @@ public class Test : MonoBehaviour {
         {
             collision.gameObject.SetActive(false);
         }
+
+        StartCoroutine(Eliminate());
     }
 
-    void FixedUpdate()
+    IEnumerator Eliminate()
     {
-        if(isHit)
-        {
-            dieCount++;
-            if(dieCount == dieCountMax)
-            {
-                gameObject.SetActive(false);
-            }
-        }
+        yield return new WaitForSeconds(Time);
+
+        gameObject.SetActive(false);
     }
 }
