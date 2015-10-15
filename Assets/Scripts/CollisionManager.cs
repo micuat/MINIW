@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class Test : MonoBehaviour {
+public class CollisionManager : MonoBehaviour {
 
     bool isHit = false;
     public int Time = 5;
