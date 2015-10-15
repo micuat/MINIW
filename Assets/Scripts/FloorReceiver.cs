@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 using Rug.Osc;
 
@@ -19,6 +19,16 @@ public class FloorReceiver : ReceiveOscBehaviourBase {
     float speed = (Mathf.PI) / 2; //2*PI in degress is 360, so you get 5 seconds to complete a circle
     float radius = 4;
 
+    public Material waterMaterial;
+    int waterCounter = 0;
+
+    public override void Start()
+    {
+        base.Start();
+        GameObject water = GameObject.Find ("WaterProDaytime");
+        waterMaterial = water.GetComponent<Renderer>().sharedMaterial;
+    }
+
     void Update()
     {
         if(Input.GetKeyDown(KeyCode.Alpha7))
@@ -26,6 +36,14 @@ public class FloorReceiver : ReceiveOscBehaviourBase {
             var c = Instantiate(chunk, GameObject.FindGameObjectWithTag("MainCamera").transform.localPosition, Quaternion.identity) as GameObject;
             c.GetComponent<Rigidbody>().AddForce(new Vector3(0, 0.5f, 4f));
             c.GetComponent<Rigidbody>().AddTorque(new Vector3(10, 0, 0));
+
+            Vector4 impactShader = new Vector4 ();
+            impactShader.x = Random.Range(-2.4f, 2.4f);
+            impactShader.y = 0;
+            impactShader.z = Random.Range(-2.4f, 2.4f);
+            impactShader.w = Time.time;
+            waterMaterial.SetVector(System.String.Concat("_Center", System.Convert.ToString(waterCounter)), impactShader);
+            waterCounter = (waterCounter + 1) % 4;
         }
 
         Vector3 moveDir = new Vector3(1, 0, 0);
