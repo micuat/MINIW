@@ -3,9 +3,16 @@ using System.Collections;
 
 public class CollisionManager : MonoBehaviour {
 
-    bool isHit = false;
+    [Header("Game Parameters")]
     public int Time = 5;
-    int dieCount = 0;
+    private bool isHit = false;
+
+    private DataManager dataManager;
+
+    public void Start()
+    {
+        dataManager = DataManager.instance;
+    }
 
     void OnCollisionEnter(Collision collision)
     {
@@ -15,8 +22,11 @@ public class CollisionManager : MonoBehaviour {
         if (collision.gameObject.tag == "Duck")
         {
             collision.gameObject.SetActive(false);
+            dataManager.AddToScore();
+            dataManager.DuckHit();
         }
 
+        // Disable can after n seconds in any case, even if the user didn't hit any duck
         StartCoroutine(Eliminate());
     }
 
