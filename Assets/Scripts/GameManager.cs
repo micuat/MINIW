@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
@@ -9,7 +9,7 @@ public class GameManager : MonoBehaviour
 
     private GUIManager guiManager;
 
-    public void Start()
+    public void Awake()
     {
         instance = this;
 
@@ -32,6 +32,7 @@ public class GameManager : MonoBehaviour
     public void EndGame(bool hasWon)
     {
         guiManager.ShowGUI(GUIManager.GUIState.EndGame, true);
+
         isPlaying = false;
     }
 

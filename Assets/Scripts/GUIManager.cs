@@ -62,7 +62,7 @@ public class GUIManager : MonoBehaviour
                 bottomText.enabled = true;
                 break;
             case GUIState.Void:
-                inGameTopPanel.SetActive(false);
+                inGameTopPanel.SetActive(true);
                 mainMenu.SetActive(false);
                 Time.timeScale = 1;
                 break;

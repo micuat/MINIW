@@ -45,7 +45,7 @@ public class FloorReceiver : MonoBehaviour
         else
         {
             callbacks = new Dictionary<KeyValuePair<OscReceiveController, string>, OscMessageEvent>();
-            callbacks[new KeyValuePair<OscReceiveController, string>(floorReceiverController, "/test")] = ReceiveMessage; 
+            callbacks[new KeyValuePair<OscReceiveController, string>(floorReceiverController, "/niw/client/raw")] = ReceiveMessage; 
         }
     }
 
@@ -82,7 +82,7 @@ public class FloorReceiver : MonoBehaviour
     }
 
     private void ReceiveMessage (OscMessage message) {
-
+		Debug.Log ("Received");
         if (message.Count != 16)
         {
             Debug.LogError(string.Format("Unexpected argument count {0}", message.Count));

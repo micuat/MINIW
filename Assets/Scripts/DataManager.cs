@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 
 public class DataManager : MonoBehaviour {
@@ -10,6 +10,9 @@ public class DataManager : MonoBehaviour {
     public int duckPoints;
     public int duckNumber;
     private float score;
+
+    private float sessionGameTime;
+    private int sessionDuckNumber;
 
     private GUIManager guiManager;
     private GameManager gameManager;
@@ -26,6 +29,9 @@ public class DataManager : MonoBehaviour {
         gameManager = GameManager.instance;
 
         score = 0;
+
+        sessionGameTime = gameTime;
+        sessionDuckNumber = duckNumber;
     }
 
     void Update()
@@ -33,24 +39,24 @@ public class DataManager : MonoBehaviour {
         if(duckNumber == 0)
         {
             gameManager.EndGame(true);
-        }
+            ResetParameters();        }
     }
 
     void FixedUpdate ()
     {
-	    if(gameTime > 0)
+	    if(sessionGameTime > 0)
         {
-            gameTime -= Time.deltaTime;
-            if(gameTime < 0)
+            sessionGameTime -= Time.deltaTime;
+            if(sessionGameTime < 0)
             {
-                gameTime = 0;
+                sessionGameTime = 0;
             }
-            guiManager.SetInGameTime(gameTime);
+            guiManager.SetInGameTime(sessionGameTime);
         }
         else
         {
             gameManager.EndGame(false);
-        }
+            ResetParameters();        }
 	}
 
     public void AddToScore()
@@ -66,6 +72,13 @@ public class DataManager : MonoBehaviour {
 
     public void DuckHit()
     {
-        duckNumber--;
+        sessionDuckNumber--;
+    }
+
+    public void ResetParameters()
+    {
+        score = 0;
+        sessionDuckNumber = duckNumber;
+        sessionGameTime = gameTime;
     }
 }
