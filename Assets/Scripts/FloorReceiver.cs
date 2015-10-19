@@ -82,51 +82,54 @@ public class FloorReceiver : MonoBehaviour
     }
 
     private void ReceiveMessage (OscMessage message) {
-		Debug.Log ("Received");
-        if (message.Count != 16)
+
+        if (gameManager.canReceive)
         {
-            Debug.LogError(string.Format("Unexpected argument count {0}", message.Count));
-
-            return;
-        }
-
-        float x_value = 0;
-        float y_value = 0;
-        int tot;
-        CenterOfPressure(message, out x_value, out y_value, out tot);
-
-        if (!gameManager.isPlaying)
-        {
-            if (tot > fartherThreshold)
+            if (message.Count != 16)
             {
-                guiManager.ShowGUI(GUIManager.GUIState.Void);
+                Debug.LogError(string.Format("Unexpected argument count {0}", message.Count));
+
+                return;
             }
-        }
 
-        if (guiManager.guiState == GUIManager.GUIState.Void && gameManager.isPlaying)
-        {
-            if (tot > closerThreshold && spawned == false)
+            float x_value = 0;
+            float y_value = 0;
+            int tot = 0;
+            CenterOfPressure(message, out x_value, out y_value, out tot);
+
+            if (!gameManager.isPlaying)
             {
-                // Get camera position
-                var pos = GameObject.FindGameObjectWithTag("MainCamera").transform.localPosition;
-                // Remap x value coming from the floor
-                pos.x = Remap(x_value, 0, 2, -4, 4);
-                // Instanciate a new can
-                var c = Instantiate(chunk, pos, Quaternion.identity) as GameObject;
-                // Add a force and a torque to the can previously instanciated
-                c.GetComponent<Rigidbody>().AddForce(new Vector3(0, 0.5f, 4f));
-                c.GetComponent<Rigidbody>().AddTorque(new Vector3(10, 0, 0));
-
-                spawned = true;
+                if (tot > fartherThreshold)
+                {
+                    guiManager.ShowGUI(GUIManager.GUIState.Void);
+                }
             }
-            else if (tot < spawnThreshold)
+
+            if (guiManager.guiState == GUIManager.GUIState.Void && gameManager.isPlaying)
             {
-                spawned = false;
+                if (tot > closerThreshold && spawned == false)
+                {
+                    // Get camera position
+                    var pos = GameObject.FindGameObjectWithTag("MainCamera").transform.localPosition;
+                    // Remap x value coming from the floor
+                    pos.x = Remap(x_value, 0, 2, -4, 4);
+                    // Instanciate a new can
+                    var c = Instantiate(chunk, pos, Quaternion.identity) as GameObject;
+                    // Add a force and a torque to the can previously instanciated
+                    c.GetComponent<Rigidbody>().AddForce(new Vector3(0, 0.5f, 4f));
+                    c.GetComponent<Rigidbody>().AddTorque(new Vector3(10, 0, 0));
+
+                    spawned = true;
+                }
+                else if (tot < spawnThreshold)
+                {
+                    spawned = false;
+                }
+            }
+            else if (guiManager.guiState == GUIManager.GUIState.Void && !gameManager.isPlaying)
+            {
+                gameManager.SetPlayingStatus(true);
             } 
-        }
-        else if (guiManager.guiState == GUIManager.GUIState.Void && !gameManager.isPlaying)
-        {
-            gameManager.SetPlayingStatus(true);
         }
     }
 

@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public class DuckMovement : MonoBehaviour {
 
@@ -7,22 +8,33 @@ public class DuckMovement : MonoBehaviour {
     public string PathName;
     public float Time;
 
+    private DataManager dataManager;
 
 	// Use this for initialization
-	void Start () {
+	void Start()
+    {
+        dataManager = DataManager.instance;
+
+        dataManager.AddDuckPosition(new KeyValuePair<Vector3, Quaternion>(gameObject.transform.localPosition, gameObject.transform.localRotation));
+
+        DefinePath();
+    }
+
+    public void DefinePath()
+    {
         Vector3[] nodes = iTweenPath.GetPath(PathName);
         Vector3[] path = new Vector3[nodes.Length];
         int start = -1;
-        
-        for(int i = 0; i < nodes.Length; i++)
+
+        for (int i = 0; i < nodes.Length; i++)
         {
-            if(nodes[i].x == transform.localPosition.x && nodes[i].z == transform.localPosition.z)
+            if (nodes[i].x == transform.localPosition.x && nodes[i].z == transform.localPosition.z)
             {
                 start = i;
                 break;
             }
         }
-        
+
         int j = 0;
         for (int i = start; i < nodes.Length; i++, j++)
         {

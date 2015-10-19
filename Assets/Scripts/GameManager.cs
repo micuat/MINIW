@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 public class GameManager : MonoBehaviour
@@ -6,6 +7,8 @@ public class GameManager : MonoBehaviour
 
     [HideInInspector]
     public bool isPlaying { get; private set; }
+    public bool canReceive { get; private set; }
+    public float restartTime;
 
     private GUIManager guiManager;
 
@@ -14,6 +17,8 @@ public class GameManager : MonoBehaviour
         instance = this;
 
         isPlaying = false;
+        canReceive = true;
+        restartTime = 0;
 
         guiManager = GUIManager.instance;
     }
@@ -31,10 +36,18 @@ public class GameManager : MonoBehaviour
 
     public void EndGame(bool hasWon)
     {
-        guiManager.ShowGUI(GUIManager.GUIState.EndGame, true);
+        guiManager.ShowGUI(GUIManager.GUIState.EndGame, hasWon);
 
+        canReceive = false;
         isPlaying = false;
+        StartCoroutine(RestartReceive());
     }
 
+    IEnumerator RestartReceive()
+    {
+        yield return new WaitForSeconds(restartTime);
 
+        guiManager.ShowGUI(GUIManager.GUIState.MainMenu);
+        canReceive = true;
+    }
 }

@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public class DataManager : MonoBehaviour {
 
@@ -13,14 +14,16 @@ public class DataManager : MonoBehaviour {
 
     private float sessionGameTime;
     private int sessionDuckNumber;
+    private List<KeyValuePair<Vector3, Quaternion>> ducksPositions;
 
     private GUIManager guiManager;
     private GameManager gameManager;
 
-
     public void Awake()
     {
         instance = this;
+
+        ducksPositions = new List<KeyValuePair<Vector3, Quaternion>>();
     }
 
     public void Start()
@@ -39,7 +42,8 @@ public class DataManager : MonoBehaviour {
         if(duckNumber == 0)
         {
             gameManager.EndGame(true);
-            ResetParameters();        }
+            ResetParameters();
+        }
     }
 
     void FixedUpdate ()
@@ -56,12 +60,13 @@ public class DataManager : MonoBehaviour {
         else
         {
             gameManager.EndGame(false);
-            ResetParameters();        }
+            ResetParameters();
+        }
 	}
 
     public void AddToScore()
     {
-        score += (duckPoints * gameTime);
+        score += (duckPoints * sessionGameTime);
         guiManager.SetInGameScore(Mathf.RoundToInt(score));
     }
 
@@ -80,5 +85,20 @@ public class DataManager : MonoBehaviour {
         score = 0;
         sessionDuckNumber = duckNumber;
         sessionGameTime = gameTime;
+
+        GameObject[] ducks = GameObject.FindGameObjectsWithTag("Duck");
+
+        for(int i = 0; i < ducks.Length; i++)
+        {
+            KeyValuePair<Vector3, Quaternion> k = ducksPositions[i];
+            ducks[i].transform.localPosition = k.Key;
+            ducks[i].transform.localRotation = k.Value;
+            ducks[i].GetComponent<DuckMovement>().DefinePath();
+        }
+    }
+
+    public void AddDuckPosition(KeyValuePair<Vector3, Quaternion> t)
+    {
+        ducksPositions.Add(t);
     }
 }
