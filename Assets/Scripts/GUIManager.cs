@@ -59,7 +59,7 @@ public class GUIManager : MonoBehaviour
                 topText.enabled = false;
                 centerText.text = !HasWon ? "Game Over!\nFinal score: " + dataManager.GetScore() : "You Won!\nFinal score: " + dataManager.GetScore();
                 centerText.enabled = true;
-                // bottomText.enabled = true;
+                bottomText.enabled = false;
                 break;
             case GUIState.Void:
                 inGameTopPanel.SetActive(true);

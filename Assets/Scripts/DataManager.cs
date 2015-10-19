@@ -41,8 +41,8 @@ public class DataManager : MonoBehaviour {
     {
         if(duckNumber == 0)
         {
-            gameManager.EndGame(true);
             ResetParameters();
+            gameManager.EndGame(true);
         }
     }
 
@@ -59,8 +59,9 @@ public class DataManager : MonoBehaviour {
         }
         else
         {
-            gameManager.EndGame(false);
             ResetParameters();
+            gameManager.EndGame(false);
+            
         }
 	}
 
@@ -80,7 +81,7 @@ public class DataManager : MonoBehaviour {
         sessionDuckNumber--;
     }
 
-    public void ResetParameters()
+    private void ResetParameters()
     {
         score = 0;
         sessionDuckNumber = duckNumber;

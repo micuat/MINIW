@@ -36,10 +36,11 @@ public class GameManager : MonoBehaviour
 
     public void EndGame(bool hasWon)
     {
-        guiManager.ShowGUI(GUIManager.GUIState.EndGame, hasWon);
-
         canReceive = false;
         isPlaying = false;
+
+        guiManager.ShowGUI(GUIManager.GUIState.EndGame, hasWon);
+        
         StartCoroutine(RestartReceive());
     }
 
