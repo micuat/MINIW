@@ -12,8 +12,8 @@ public class DataManager : MonoBehaviour {
     public int duckNumber;
     private float score;
 
-    private float sessionGameTime;
-    private int sessionDuckNumber;
+    public float sessionGameTime { get; private set; }
+    public int sessionDuckNumber { get; private set; }
     private List<KeyValuePair<Vector3, Quaternion>> ducksPositions;
 
     private GUIManager guiManager;
@@ -94,6 +94,7 @@ public class DataManager : MonoBehaviour {
             ducks[i].transform.localPosition = k.Key;
             ducks[i].transform.localRotation = k.Value;
             ducks[i].GetComponent<DuckMovement>().DefinePath();
+            ducks[i].SetActive(true);
         }
     }
 

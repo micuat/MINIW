@@ -27,6 +27,7 @@ public class FloorReceiver : MonoBehaviour
     private bool spawned = false;
 
     private GameManager gameManager;
+    private DataManager dataManager;
     private GUIManager guiManager;
 
     void Awake()
@@ -69,6 +70,7 @@ public class FloorReceiver : MonoBehaviour
 
         gameManager = GameManager.instance;
         guiManager = GUIManager.instance;
+        dataManager = DataManager.instance;
     }
 
     void Update()
@@ -83,7 +85,7 @@ public class FloorReceiver : MonoBehaviour
 
     private void ReceiveMessage (OscMessage message) {
 
-        if (gameManager.canReceive)
+        if (gameManager.canReceive && dataManager.sessionGameTime > 0 && dataManager.sessionDuckNumber > 0)
         {
             if (message.Count != 16)
             {
