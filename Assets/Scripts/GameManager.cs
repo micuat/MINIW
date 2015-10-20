@@ -11,16 +11,19 @@ public class GameManager : MonoBehaviour
     public float restartTime;
 
     private GUIManager guiManager;
+    private DataManager dataManager;
 
     public void Awake()
     {
         instance = this;
 
         isPlaying = false;
-        canReceive = true;
-        restartTime = 0;
+        canReceive = false;
 
         guiManager = GUIManager.instance;
+        dataManager = DataManager.instance;
+
+        StartCoroutine(SetReceive());
     }
 
     public void SetPlayingStatus(bool b)
@@ -31,6 +34,7 @@ public class GameManager : MonoBehaviour
     public void StartGame()
     {
         guiManager.ShowGUI(GUIManager.GUIState.Void);
+        
         isPlaying = true;
     }
 
@@ -47,8 +51,18 @@ public class GameManager : MonoBehaviour
     IEnumerator RestartReceive()
     {
         yield return new WaitForSeconds(restartTime);
-
+        
         guiManager.ShowGUI(GUIManager.GUIState.MainMenu);
+        dataManager.ResetDucks();
+
+        StartCoroutine(SetReceive());
+    }
+
+    IEnumerator SetReceive()
+    {
+        yield return new WaitForSeconds(2);
+
+        guiManager.ShowBottomLine();
         canReceive = true;
     }
 }

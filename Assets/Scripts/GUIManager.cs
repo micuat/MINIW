@@ -44,15 +44,15 @@ public class GUIManager : MonoBehaviour
         switch (state)
         {
             case GUIState.MainMenu:
-                Time.timeScale = 0; // Stop the game
+                // Time.timeScale = 0; // Stop the game
                 inGameTopPanel.SetActive(false);
                 mainMenu.SetActive(true);
                 topText.enabled = true;
                 centerText.enabled = false;
-                bottomText.enabled = true;
+                bottomText.enabled = false;
                 break;
             case GUIState.EndGame:
-                Time.timeScale = 0;
+                // Time.timeScale = 0;
                 inGameTopPanel.SetActive(false);
                 // Show final score
                 mainMenu.SetActive(true);
@@ -79,5 +79,10 @@ public class GUIManager : MonoBehaviour
     public void SetInGameScore(int score)
     {
         inGameScoreText.text = score.ToString();
+    }
+
+    public void ShowBottomLine()
+    {
+        bottomText.enabled = true;
     }
 }

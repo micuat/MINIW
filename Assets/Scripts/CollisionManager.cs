@@ -21,6 +21,7 @@ public class CollisionManager : MonoBehaviour {
         
         if (collision.gameObject.tag == "Duck")
         {
+            dataManager.AddDisabledDuck(collision.gameObject);
             collision.gameObject.SetActive(false);
             dataManager.AddToScore();
             dataManager.DuckHit();

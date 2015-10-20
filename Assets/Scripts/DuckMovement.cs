@@ -15,7 +15,7 @@ public class DuckMovement : MonoBehaviour {
     {
         dataManager = DataManager.instance;
 
-        dataManager.AddDuckPosition(new KeyValuePair<Vector3, Quaternion>(gameObject.transform.localPosition, gameObject.transform.localRotation));
+        dataManager.AddDuckPosition(gameObject.name, new KeyValuePair<Vector3, Quaternion>(gameObject.transform.localPosition, gameObject.transform.localRotation));
 
         DefinePath();
     }
@@ -46,5 +46,10 @@ public class DuckMovement : MonoBehaviour {
         }
 
         iTween.MoveTo(gameObject, iTween.Hash("path", path, "time", Time, "looptype", iTween.LoopType.loop, "easetype", iTween.EaseType.linear, "movetopath", true, "orienttopath", true));
+    }
+
+    public void StopPath()
+    {
+        iTween.Stop(gameObject);
     }
 }

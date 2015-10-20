@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using System;
 
 public class DataManager : MonoBehaviour {
 
@@ -14,7 +15,8 @@ public class DataManager : MonoBehaviour {
 
     public float sessionGameTime { get; private set; }
     public int sessionDuckNumber { get; private set; }
-    private List<KeyValuePair<Vector3, Quaternion>> ducksPositions;
+    private List<GameObject> disabledDucks;
+    private Dictionary<String, KeyValuePair<Vector3, Quaternion>> ducksPositions;
 
     private GUIManager guiManager;
     private GameManager gameManager;
@@ -23,7 +25,8 @@ public class DataManager : MonoBehaviour {
     {
         instance = this;
 
-        ducksPositions = new List<KeyValuePair<Vector3, Quaternion>>();
+        ducksPositions = new Dictionary<String, KeyValuePair<Vector3, Quaternion>>();
+        disabledDucks = new List<GameObject>();
     }
 
     public void Start()
@@ -39,7 +42,7 @@ public class DataManager : MonoBehaviour {
 
     void Update()
     {
-        if(duckNumber == 0)
+        if(duckNumber == 0 && guiManager.guiState == GUIManager.GUIState.Void)
         {
             ResetParameters();
             gameManager.EndGame(true);
@@ -48,7 +51,7 @@ public class DataManager : MonoBehaviour {
 
     void FixedUpdate ()
     {
-	    if(sessionGameTime > 0)
+	    if(sessionGameTime > 0 && guiManager.guiState == GUIManager.GUIState.Void)
         {
             sessionGameTime -= Time.deltaTime;
             if(sessionGameTime < 0)
@@ -57,11 +60,10 @@ public class DataManager : MonoBehaviour {
             }
             guiManager.SetInGameTime(sessionGameTime);
         }
-        else
+        else if(guiManager.guiState == GUIManager.GUIState.Void)
         {
             ResetParameters();
             gameManager.EndGame(false);
-            
         }
 	}
 
@@ -81,26 +83,62 @@ public class DataManager : MonoBehaviour {
         sessionDuckNumber--;
     }
 
+    public void SetScore(float f)
+    {
+        score = f;
+        guiManager.SetInGameScore((int)score);
+    }
+
     private void ResetParameters()
     {
-        score = 0;
+        // score = 0;
         sessionDuckNumber = duckNumber;
         sessionGameTime = gameTime;
-
+        
         GameObject[] ducks = GameObject.FindGameObjectsWithTag("Duck");
-
+        
         for(int i = 0; i < ducks.Length; i++)
         {
-            KeyValuePair<Vector3, Quaternion> k = ducksPositions[i];
-            ducks[i].transform.localPosition = k.Key;
-            ducks[i].transform.localRotation = k.Value;
-            ducks[i].GetComponent<DuckMovement>().DefinePath();
-            ducks[i].SetActive(true);
+            ducks[i].GetComponent<DuckMovement>().StopPath();
+        }
+
+        for (int i = 0; i < disabledDucks.Count; i++)
+        {
+            disabledDucks[i].GetComponent<DuckMovement>().StopPath();
         }
     }
 
-    public void AddDuckPosition(KeyValuePair<Vector3, Quaternion> t)
+    public void AddDuckPosition(String name, KeyValuePair<Vector3, Quaternion> t)
     {
-        ducksPositions.Add(t);
+        ducksPositions[name] = t;
+    }
+
+    public void AddDisabledDuck(GameObject g)
+    {
+        disabledDucks.Add(g);
+    }
+
+    public void ResetDucks()
+    {
+        GameObject[] ducks = GameObject.FindGameObjectsWithTag("Duck");
+
+        for (int i = 0; i < ducks.Length; i++)
+        { 
+            ducks[i].transform.localPosition = ducksPositions[ducks[i].name].Key;
+            ducks[i].transform.localRotation = ducksPositions[ducks[i].name].Value;
+            ducks[i].GetComponent<DuckMovement>().DefinePath();
+            ducks[i].SetActive(true);
+        }
+
+        for (int i = 0; i < disabledDucks.Count; i++)
+        {
+            disabledDucks[i].GetComponent<DuckMovement>().StopPath();
+            disabledDucks[i].transform.localPosition = ducksPositions[disabledDucks[i].name].Key;
+            disabledDucks[i].transform.localRotation = ducksPositions[disabledDucks[i].name].Value;
+            disabledDucks[i].GetComponent<DuckMovement>().DefinePath();
+            disabledDucks[i].SetActive(true);
+        }
+
+        disabledDucks.Clear();
     }
 }

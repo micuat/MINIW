@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections;
 using Rug.Osc;
 using System.Collections.Generic;
 
@@ -103,25 +102,49 @@ public class FloorReceiver : MonoBehaviour
             {
                 if (tot > fartherThreshold)
                 {
+                    dataManager.SetScore(0);
                     guiManager.ShowGUI(GUIManager.GUIState.Void);
                 }
             }
 
+             
             if (guiManager.guiState == GUIManager.GUIState.Void && gameManager.isPlaying)
             {
                 if (tot > closerThreshold && spawned == false)
                 {
-                    // Get camera position
-                    var pos = GameObject.FindGameObjectWithTag("MainCamera").transform.localPosition;
-                    // Remap x value coming from the floor
-                    pos.x = Remap(x_value, 0, 2, -4, 4);
-                    // Instanciate a new can
-                    var c = Instantiate(chunk, pos, Quaternion.identity) as GameObject;
-                    // Add a force and a torque to the can previously instanciated
-                    c.GetComponent<Rigidbody>().AddForce(new Vector3(0, 0.5f, 4f));
-                    c.GetComponent<Rigidbody>().AddTorque(new Vector3(10, 0, 0));
+                    FloorData compute = new FloorData();
+                    if (DetectLane(message, out compute))
+                    {
+                        Debug.Log(compute.tot);
+                        if (compute.tot > closerThreshold && compute.tot < fartherThreshold)
+                        {
+                            // Get camera position
+                            var pos = GameObject.FindGameObjectWithTag("MainCamera").transform.localPosition;
+                            // Remap x value coming from the floor
+                            pos.x = Remap(compute.x_value, 0, 2, -4, 4);
+                            // Instanciate a new can
+                            var c = Instantiate(chunk, pos, Quaternion.identity) as GameObject;
+                            // Add a force and a torque to the can previously instanciated
+                            c.GetComponent<Rigidbody>().AddForce(new Vector3(0, 0.5f, 4f));
+                            c.GetComponent<Rigidbody>().AddTorque(new Vector3(10, 0, 0));
 
-                    spawned = true;
+                            spawned = true; 
+                        } 
+                        else if(compute.tot >= fartherThreshold)
+                        {
+                            // Get camera position
+                            var pos = GameObject.FindGameObjectWithTag("MainCamera").transform.localPosition;
+                            // Remap x value coming from the floor
+                            pos.x = Remap(compute.x_value, 0, 2, -4, 4);
+                            // Instanciate a new can
+                            var c = Instantiate(chunk, pos, Quaternion.identity) as GameObject;
+                            // Add a force and a torque to the can previously instanciated
+                            c.GetComponent<Rigidbody>().AddForce(new Vector3(0, 0.5f, 5.5f));
+                            c.GetComponent<Rigidbody>().AddTorque(new Vector3(10, 0, 0));
+
+                            spawned = true;
+                        }
+                    }
                 }
                 else if (tot < spawnThreshold)
                 {
@@ -133,6 +156,57 @@ public class FloorReceiver : MonoBehaviour
                 gameManager.SetPlayingStatus(true);
             } 
         }
+    }
+
+    private int counter = 0;
+    private static int windowSize = 5;
+    public struct FloorData
+    {
+        public float x_value;
+        public float y_value;
+        public int tot;
+    }
+    private FloorData[] window = new FloorData[windowSize];
+    private bool DetectLane(OscMessage message, out FloorData input)
+    {
+        float x, y;
+        int tot;
+
+        // Calculate center of pressure
+        CenterOfPressure(message, out x, out y, out tot);
+
+        // Store data in the window array
+        window[counter].x_value = x;
+        window[counter].y_value = y;
+        window[counter].tot = tot;
+
+        // Upgrade the counter
+        counter++;
+
+        // Check if we get the desired nomber of values
+        if(counter == windowSize)
+        {
+            int i = 0;
+            input.x_value = 0;
+            input.y_value = 0;
+            input.tot = 0;
+            for (; i < windowSize; i++)
+            {
+                if(window[i].tot > input.tot)
+                {
+                    input.x_value = window[i].x_value;
+                    input.y_value = window[i].y_value;
+                    input.tot = window[i].tot;
+                }
+            }
+
+            counter = 0;
+
+            return true;
+        }
+
+        input = new FloorData();
+        return false;
     }
 
     /// <summary>
