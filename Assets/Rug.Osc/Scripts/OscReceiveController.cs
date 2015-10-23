@@ -1,8 +1,5 @@
-using System;
 using System.Net;
-using System.Collections;
 using UnityEngine;
-using UnityEditor; 
 using Rug.Osc;
 
 public class OscReceiveController : MonoBehaviour {
@@ -48,19 +45,14 @@ public class OscReceiveController : MonoBehaviour {
 		m_Receiver.Connect ();
 		
 		// We are now connected
-		Debug.Log ("Connected Receiver"); 
-	}
-
-	// Use this for initialization
-	void Start () {
-
+		Debug.Log ("Connected Receiver " + m_Receiver.State); 
 	}
 	
 	// Update is called once per frame
 	void Update () {
 
-		int i = 0; 
-
+		int i = 0;
+        
 		// if we are in a state to recieve
 		while (i++ < MaxMessagesToProcessPerFrame && 
 		       m_Receiver.State == OscSocketState.Connected)
@@ -72,8 +64,8 @@ public class OscReceiveController : MonoBehaviour {
 			{
 				return; 
 			}
-			
-			switch (m_Manager.ShouldInvoke(packet))
+
+            switch (m_Manager.ShouldInvoke(packet))
 			{
 				case OscPacketInvokeAction.Invoke:
 					// Debug.Log ("Received packet");

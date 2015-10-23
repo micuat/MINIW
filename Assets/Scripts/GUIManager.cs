@@ -12,6 +12,7 @@ public class GUIManager : MonoBehaviour
 
     [Header("Ingame Menu")]
     public GameObject inGameTopPanel;
+    public Text inGameCanLeft;
     public Text inGameTimeText;
     public Text inGameScoreText;
 
@@ -25,6 +26,7 @@ public class GUIManager : MonoBehaviour
     public GUIState guiState;
 
     private DataManager dataManager;
+    private GameManager gameManager;
 
     public void Awake()
     {
@@ -35,6 +37,7 @@ public class GUIManager : MonoBehaviour
     void Start()
     {
         dataManager = DataManager.instance;
+        gameManager = GameManager.instance;
 
         ShowGUI(GUIState.MainMenu);
     }
@@ -62,6 +65,8 @@ public class GUIManager : MonoBehaviour
                 bottomText.enabled = false;
                 break;
             case GUIState.Void:
+                inGameTimeText.enabled = gameManager.limitTime ? true : false;
+                inGameCanLeft.enabled = gameManager.limitTime ? false : true;
                 inGameTopPanel.SetActive(true);
                 mainMenu.SetActive(false);
                 Time.timeScale = 1;
@@ -79,6 +84,11 @@ public class GUIManager : MonoBehaviour
     public void SetInGameScore(int score)
     {
         inGameScoreText.text = score.ToString();
+    }
+
+    public void SetInGameCanNumber(int s)
+    {
+        inGameCanLeft.text = "Can left: " + s;
     }
 
     public void ShowBottomLine()

@@ -5,10 +5,11 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager instance;
 
-    [HideInInspector]
+    [Header("Game Parameters")]
+    public float restartTime;
+    public bool limitTime = false;
     public bool isPlaying { get; private set; }
     public bool canReceive { get; private set; }
-    public float restartTime;
 
     private GUIManager guiManager;
     private DataManager dataManager;
@@ -33,6 +34,11 @@ public class GameManager : MonoBehaviour
 
     public void StartGame()
     {
+        if (!limitTime)
+        {
+            guiManager.SetInGameCanNumber(dataManager.canNumber);
+        }
+
         guiManager.ShowGUI(GUIManager.GUIState.Void);
         
         isPlaying = true;
