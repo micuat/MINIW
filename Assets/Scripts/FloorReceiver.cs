@@ -227,6 +227,11 @@ public class FloorReceiver : MonoBehaviour
         var c = Instantiate(chunk, pos, Quaternion.identity) as GameObject;
         // Subtract the can from the total amunt
         dataManager.UseCan();
+
+        Remap(pos.x, -5.5f, 5 - 5f, 0, Screen.width);
+        //var canPosition = new Vector3(pos.x, 2.55f, -5.25f);
+        guiManager.ShowForceBar(new Vector3(Remap(pos.x, -5.5f, 5.5f, 0, Screen.width), 0, 0), Remap(zForce, lowForceValue, highForceValue, 0, 1));
+
         // Add a force and a torque to the can previously instanciated
         c.GetComponent<Rigidbody>().AddForce(new Vector3(xForce, yForce, zForce));
         c.GetComponent<Rigidbody>().AddTorque(new Vector3(torqueForce, 0, 0));

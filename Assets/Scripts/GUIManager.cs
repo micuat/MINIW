@@ -22,6 +22,8 @@ public class GUIManager : MonoBehaviour
     public Text centerText;
     public Text bottomText;
 
+    public Image ForceBar;
+
     [HideInInspector]
     public GUIState guiState;
 
@@ -30,7 +32,7 @@ public class GUIManager : MonoBehaviour
 
     public void Awake()
     {
-        instance = this;
+        instance = this; 
     }
 
     // Use this for initialization
@@ -95,4 +97,16 @@ public class GUIManager : MonoBehaviour
     {
         bottomText.enabled = true;
     }
+
+    public void ShowForceBar(Vector3 canPosition, float force)
+    {
+        Debug.Log(canPosition);
+        canPosition.y = ForceBar.rectTransform.position.y;
+        canPosition.z = ForceBar.rectTransform.position.z;
+        ForceBar.rectTransform.position = canPosition;
+        
+        ForceBar.GetComponent<Image>().fillAmount = force;
+    }
+
+    
 }
