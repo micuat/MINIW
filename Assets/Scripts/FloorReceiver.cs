@@ -131,7 +131,7 @@ public class FloorReceiver : MonoBehaviour
                     else if (guiManager.guiState == GUIManager.GUIState.Void && gameManager.isPlaying)
                     {
                         // ... Show force bar
-                        guiManager.ShowForceBar(true, Remap((float)message[2], 0, 2, dataManager.rightMostDuck, dataManager.leftMostDuck));
+                        guiManager.ShowForceBar(true, Remap((float)message[2], 0, 2, dataManager.leftMostDuck, dataManager.rightMostDuck));
                         // Record detected step in the xml file
                         dataManager.parser.AddStep(GetTimestamp(DateTime.Now));
 
@@ -143,7 +143,7 @@ public class FloorReceiver : MonoBehaviour
                     if (guiManager.guiState == GUIManager.GUIState.Void && gameManager.isPlaying && !spawned)
                     {
                         // Update force bar
-                        guiManager.UpdateForceBar(Remap((float)message[2], 0, 2, dataManager.rightMostDuck, dataManager.leftMostDuck), (float)message[4]);
+                        guiManager.UpdateForceBar(Remap((float)message[2], 0, 2, dataManager.leftMostDuck, dataManager.rightMostDuck), (float)message[4]);
                     }
                     break;
                 case "remove":
@@ -159,7 +159,7 @@ public class FloorReceiver : MonoBehaviour
                     else if (guiManager.guiState == GUIManager.GUIState.Void && gameManager.isPlaying)
                     {
                         // Update force bar
-                        guiManager.UpdateForceBar(Remap((float)message[2], 0, 2, dataManager.rightMostDuck, dataManager.leftMostDuck), (float)message[4]);
+                        guiManager.UpdateForceBar(Remap((float)message[2], 0, 2, dataManager.leftMostDuck, dataManager.rightMostDuck), (float)message[4]);
 
                         // Define parameters to be used to throw the can
                         DefineCanParameters(0, 0.5f, (float)message[4], 0, 1, lowForceValue, highForceValue);

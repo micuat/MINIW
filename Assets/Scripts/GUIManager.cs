@@ -125,7 +125,7 @@ public class GUIManager : MonoBehaviour
     {
         ForceBar.GetComponent<Image>().fillAmount = length;
 
-        if (Mathf.Abs(ForceBar.rectTransform.position.x - xPosition) > 50)
+        if (Mathf.Abs(ForceBar.rectTransform.position.x - xPosition) > 5)
         {
             Vector3 v = new Vector3();
             v.x = xPosition;
