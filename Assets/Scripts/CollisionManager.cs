@@ -73,7 +73,7 @@ public class CollisionManager : MonoBehaviour {
 
         if(duckHit)
         {
-            dataManager.RecordDuckHit(c);
+            dataManager.RecordDuckHit(c, collision.gameObject.name);
         }
         
         // Is it the last can?

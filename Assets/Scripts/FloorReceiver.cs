@@ -62,7 +62,8 @@ public class FloorReceiver : MonoBehaviour
         else
         {
             callbacks = new Dictionary<KeyValuePair<OscReceiveController, string>, OscMessageEvent>();
-            callbacks[new KeyValuePair<OscReceiveController, string>(floorReceiverController, "/niw/client/raw")] = ReceiveMessage; 
+            callbacks[new KeyValuePair<OscReceiveController, string>(floorReceiverController, "/niw/client/raw")] = ReceiveMessage;
+            callbacks[new KeyValuePair<OscReceiveController, string>(floorReceiverController, "/niw/client/aggregator/floorcontact")] = FloorContact;
         }
     }
 
@@ -96,6 +97,91 @@ public class FloorReceiver : MonoBehaviour
             var c = Instantiate(chunk, GameObject.FindGameObjectWithTag("MainCamera").transform.localPosition, Quaternion.identity) as GameObject;
             c.GetComponent<Rigidbody>().AddForce(new Vector3(0, 0.5f, 4f));
             c.GetComponent<Rigidbody>().AddTorque(new Vector3(10, 0, 0));
+        }
+    }
+
+    private void FloorContact(OscMessage message)
+    {
+        Debug.Log("Received");
+        // Check whether we can receive and compute the message
+        if (gameManager.canReceive && dataManager.sessionGameTime > 0 && dataManager.sessionDucksInTheGame > 0)
+        {
+            // Check the type of the message received
+            switch (message[0] as string)
+            {
+                // Add message: the user has started to push the tile
+                case "add":
+                    // If the player hasn't started the game yet ...
+                    if (!gameManager.isPlaying)
+                    {
+                        /// ... Zero the score, and show the Void GUIState (that is, make the Main Menu disappear)
+                        dataManager.SetScore(0);
+                        guiManager.ShowGUI(GUIManager.GUIState.Void);
+                    }
+                    // If the game is in Void mode and the player is playing ...
+                    else if (guiManager.guiState == GUIManager.GUIState.Void && gameManager.isPlaying)
+                    {
+                        // ... Show force bar
+                        guiManager.ShowForceBar(true, Remap((float)message[2], 0, 2, dataManager.leftMostDuck, dataManager.rightMostDuck));
+                        // Record detected step in the xml file
+                        dataManager.parser.AddStep(GetTimestamp(DateTime.Now));
+                    }
+                    break;
+                case "update":
+                    // If the game is in Void mode and the player is playing ...
+                    if (guiManager.guiState == GUIManager.GUIState.Void && gameManager.isPlaying)
+                    {
+                        // Update force bar
+                        guiManager.UpdateForceBar(Remap((float)message[2], 0, 2, dataManager.leftMostDuck, dataManager.rightMostDuck), (float)message[4]);
+                    }
+                    break;
+                case "remove":
+                    // The game will start only after the first remove message is received
+                    if (guiManager.guiState == GUIManager.GUIState.Void && !gameManager.isPlaying)
+                    {
+                        // Start playing
+                        gameManager.SetPlayingStatus(true);
+                        // Add a new session in the xml file
+                        dataManager.parser.AddSession(GetTimestamp(DateTime.Now));
+                    }
+                    // If the game is in Void mode and the player is playing ...
+                    else if (guiManager.guiState == GUIManager.GUIState.Void && gameManager.isPlaying)
+                    {
+                        // Update force bar
+                        guiManager.UpdateForceBar(Remap((float)message[2], 0, 2, dataManager.leftMostDuck, dataManager.rightMostDuck), (float)message[4]);
+
+                        // Define parameters to be used to throw the can
+                        DefineCanParameters(0, 0.5f, (float)message[4], 0, 1, lowForceValue, highForceValue);
+
+                        // Instanciate and throw the can using the defined parameters
+                        ThrowCan((float)message[2]);
+
+                        // Record detected step in the xml file
+                        dataManager.parser.SaveStep((float)message[2], (float)message[3], (float)message[4], GetTimestamp(DateTime.Now));
+                    }
+                    break;
+            }
+
+        }
+    }
+
+    private void DefineCanParameters(float xforce, float yforce, float zforce)
+    {
+        xForce = xforce;
+        yForce = yforce;
+        zForce = zforce;
+    }
+
+    private void DefineCanParameters(float xforce, float yforce, float zforce, float from_old, float to_old, float from_new, float to_new)
+    {
+        xForce = xforce;
+        yForce = yforce;
+        zForce = Remap(zforce, from_old, to_old, from_new, to_new);
+
+        // zForce can be greater than highForceValue if we get an fsr value higher than furtherThreshold
+        if (zForce > to_new)
+        {
+            zForce = to_new;
         }
     }
 
@@ -149,18 +235,10 @@ public class FloorReceiver : MonoBehaviour
                         if (DetectLane(message, out compute) && !dataManager.isLastCan())
                         {
                             // Define parameters to be used to throw the can
-                            xForce = 0;
-                            yForce = 0.5f;
-                            zForce = Remap(compute.tot, closerThreshold, fartherThreshold, lowForceValue, highForceValue);
-                            
-                            // zForce can be greater than 6 if we get an fsr value higher than furtherThreshold
-                            if(zForce > highForceValue)
-                            {
-                                zForce = highForceValue;
-                            }
+                            DefineCanParameters(0, 0.5f, compute.tot, closerThreshold, fartherThreshold, lowForceValue, highForceValue);
                             
                             // Instanciate and throw the can using the defined parameters
-                            ThrowCan(data);
+                            ThrowCan(compute.x_value);
 
                             // Can has be spawned. The player has to lift his/her foot in order to be able to throw
                             // another can
@@ -177,11 +255,9 @@ public class FloorReceiver : MonoBehaviour
                         {
                             if (compute.tot > closerThreshold && compute.tot < fartherThreshold)
                             {
-                                xForce = 0;
-                                yForce = 0.5f;
-                                zForce = 4.0f;
+                                DefineCanParameters(0, 0.5f, 4.0f);
 
-                                ThrowCan(compute);
+                                ThrowCan(compute.x_value);
 
                                 spawned = true;
 
@@ -189,10 +265,9 @@ public class FloorReceiver : MonoBehaviour
                             }
                             else if (compute.tot >= fartherThreshold)
                             {
-                                xForce = 0;
-                                yForce = 0.5f;
-                                zForce = 5.5f;
-                                ThrowCan(compute);
+                                DefineCanParameters(0, 0.5f, 5.5f);
+
+                                ThrowCan(compute.x_value);
 
                                 spawned = true;
 
@@ -217,12 +292,12 @@ public class FloorReceiver : MonoBehaviour
         }
     }
 
-    private void ThrowCan(FloorData data)
+    private void ThrowCan(float x_value)
     {
         // Get camera position
         var pos = GameObject.FindGameObjectWithTag("MainCamera").transform.localPosition;
         // Remap x value coming from the floor
-        pos.x = Remap(data.x_value, 0, 2, -5.5F, 5.5F);
+        pos.x = Remap(x_value, 0, 2, -5.5F, 5.5F);
         // Instanciate a new can
         var c = Instantiate(chunk, pos, Quaternion.identity) as GameObject;
         // Subtract the can from the total amunt

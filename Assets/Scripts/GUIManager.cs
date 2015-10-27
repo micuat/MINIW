@@ -55,6 +55,7 @@ public class GUIManager : MonoBehaviour
                 topText.enabled = true;
                 centerText.enabled = false;
                 bottomText.enabled = false;
+                ForceBar.enabled = false;
                 break;
             case GUIState.EndGame:
                 // Time.timeScale = 0;
@@ -108,5 +109,29 @@ public class GUIManager : MonoBehaviour
         ForceBar.GetComponent<Image>().fillAmount = force;
     }
 
-    
+    public void ShowForceBar(bool b, float startPosition)
+    {
+        ForceBar.enabled = b;
+        ForceBar.GetComponent<Image>().fillAmount = 0;
+
+        Vector3 v = new Vector3();
+        v.x = startPosition;
+        v.y = ForceBar.rectTransform.position.y;
+        v.z = ForceBar.rectTransform.position.z;
+        ForceBar.rectTransform.position = v;
+    }
+
+    public void UpdateForceBar(float xPosition, float length)
+    {
+        ForceBar.GetComponent<Image>().fillAmount = length;
+
+        if (Mathf.Abs(ForceBar.rectTransform.position.x - xPosition) > 50)
+        {
+            Vector3 v = new Vector3();
+            v.x = xPosition;
+            v.y = ForceBar.rectTransform.position.y;
+            v.z = ForceBar.rectTransform.position.z;
+            ForceBar.rectTransform.position = v;
+        }
+    }
 }

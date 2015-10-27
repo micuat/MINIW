@@ -26,6 +26,9 @@ public class DataManager : MonoBehaviour {
     [HideInInspector]
     public XmlParser parser;
 
+    public float leftMostDuck { get; private set; }
+    public float rightMostDuck { get; private set; }
+
     private GUIManager guiManager;
     private GameManager gameManager;
 
@@ -38,6 +41,9 @@ public class DataManager : MonoBehaviour {
         ducksInTheGame = GameObject.FindGameObjectsWithTag("Duck").Length;
 
         lastCan = false;
+
+        rightMostDuck = 0;
+        leftMostDuck = Screen.width;
         
         parser = new XmlParser(Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\" + xmlFileName + ".xml");
     }
@@ -140,7 +146,7 @@ public class DataManager : MonoBehaviour {
             disabledDucks[i].GetComponent<DuckMovement>().StopPath();
         }
 
-        parser.SaveSession(GetTimestamp(DateTime.Now));
+        parser.SaveAdaptiveSession(GetTimestamp(DateTime.Now));
     }
 
     public void AddDuckPosition(String name, KeyValuePair<Vector3, Quaternion> t)
@@ -196,5 +202,25 @@ public class DataManager : MonoBehaviour {
     public void RecordDuckHit(int id)
     {
         parser.SetDuckHit(id);
+    }
+
+    public void RecordDuckHit(int id, string name)
+    {
+        parser.SetDuckHit(id, name);
+    }
+
+    public void DefineBoundaries(Vector3 worldPosition)
+    {
+        Vector3 v = Camera.main.WorldToScreenPoint(worldPosition);
+
+        if(v.x > rightMostDuck)
+        {
+            rightMostDuck = v.x;
+        }
+
+        if(v.x < leftMostDuck)
+        {
+            leftMostDuck = v.x;
+        }
     }
 }

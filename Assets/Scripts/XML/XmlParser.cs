@@ -11,6 +11,8 @@ public class XmlParser
     private XDocument doc;
     private XElement currentSession;
     private List<Data> steps;
+    private List<AdaptiveData> adaptiveSteps;
+    private AdaptiveData currentStep;
     private string path;
 
     private struct Data
@@ -22,13 +24,24 @@ public class XmlParser
         public bool hasHit;
     }
 
+    private struct AdaptiveData
+    {
+        public string startTime;
+        public string endTime;
+        public float x_value;
+        public float y_value;
+        public float force;
+        public bool hasHit;
+        public string duckName;
+
+    }
+
     public XmlParser(string path)
     {
         if (File.Exists(path))
         {
             doc = XDocument.Load(path);
             id = GetCounter();
-            Debug.Log(id);
         }
         else
         {
@@ -40,6 +53,7 @@ public class XmlParser
         doc.Save(path);
 
         steps = new List<Data>();
+        adaptiveSteps = new List<AdaptiveData>();
         this.path = path;
     }
 
@@ -68,6 +82,28 @@ public class XmlParser
         steps.Clear();
     }
 
+    public void SaveAdaptiveSession(string end_time)
+    {
+        doc = XDocument.Load(path);
+
+        currentSession.Add(new XAttribute("end_time", end_time));
+        currentSession.Add(
+            from c in adaptiveSteps
+            select new XElement("Step", new XAttribute("start_time", c.startTime),
+                                        new XAttribute("end_time", c.endTime),
+                                        new XAttribute("x_value", c.x_value),
+                                        new XAttribute("y_value", c.y_value),
+                                        new XAttribute("force", c.force),
+                                        new XAttribute("has_hit", c.hasHit),
+                                        new XAttribute("duck_name", c.duckName))
+        );
+
+        doc.Descendants("Data").First().Add(currentSession);
+        doc.Save(path);
+
+        steps.Clear();
+    }
+
     public void AddStep(float x_value, float y_value, int tot, float force)
     {
         Data d = new Data();
@@ -79,6 +115,25 @@ public class XmlParser
         d.hasHit = false;
 
         steps.Add(d);
+    }
+
+    public void AddStep(string startTime)
+    {
+        currentStep = new AdaptiveData();
+
+        currentStep.startTime = startTime;
+    }
+
+    public void SaveStep(float x_value, float y_value, float force, string end_time)
+    {
+        currentStep.endTime = end_time;
+        currentStep.x_value = x_value;
+        currentStep.y_value = y_value;
+        currentStep.force = force;
+        currentStep.hasHit = false;
+        currentStep.duckName = "";
+
+        adaptiveSteps.Add(currentStep);
     }
 
     public int GetCounter()
@@ -104,6 +159,22 @@ public class XmlParser
         d.tot = steps[canId].tot;
         d.force = steps[canId].force;
         d.hasHit = true;
+
         steps[canId] = d;
+    }
+
+    public void SetDuckHit(int canId, string name)
+    {
+        AdaptiveData d = new AdaptiveData();
+
+        d.startTime = adaptiveSteps[canId].startTime;
+        d.endTime = adaptiveSteps[canId].endTime;
+        d.x_value = adaptiveSteps[canId].x_value;
+        d.y_value = adaptiveSteps[canId].y_value;
+        d.force = adaptiveSteps[canId].force;
+        d.hasHit = true;
+        d.duckName = name;
+
+        adaptiveSteps[canId] = d;
     }
 }

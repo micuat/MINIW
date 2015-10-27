@@ -18,6 +18,8 @@ public class DuckMovement : MonoBehaviour {
         dataManager.AddDuckPosition(gameObject.name, new KeyValuePair<Vector3, Quaternion>(gameObject.transform.localPosition, gameObject.transform.localRotation));
 
         DefinePath();
+
+        dataManager.DefineBoundaries(gameObject.transform.position);
     }
 
     public void DefinePath()
