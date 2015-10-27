@@ -10,6 +10,7 @@ public class GameManager : MonoBehaviour
     public bool limitTime = false;
     public bool isPlaying { get; private set; }
     public bool canReceive { get; private set; }
+    public FloorReceiver.FloorType floorType { get; private set; }
 
     private GUIManager guiManager;
     private DataManager dataManager;
@@ -30,6 +31,11 @@ public class GameManager : MonoBehaviour
     public void SetPlayingStatus(bool b)
     {
         isPlaying = b;
+    }
+
+    public void SetFloorType(FloorReceiver.FloorType floorType)
+    {
+        this.floorType = floorType;
     }
 
     public void StartGame()
@@ -59,7 +65,9 @@ public class GameManager : MonoBehaviour
         yield return new WaitForSeconds(restartTime);
         
         guiManager.ShowGUI(GUIManager.GUIState.MainMenu);
-        dataManager.ResetDucks();
+
+        
+        dataManager.ResetDucks(); 
 
         StartCoroutine(SetReceive());
     }

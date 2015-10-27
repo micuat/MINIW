@@ -104,6 +104,14 @@ public class XmlParser
         steps.Clear();
     }
 
+    /// <summary>
+    /// This function is to be used just for non-adaptive game sessions. 
+    /// It is used to record a can thrown
+    /// </summary>
+    /// <param name="x_value">Detected x-value</param>
+    /// <param name="y_value">Detected y-value</param>
+    /// <param name="tot">Fsr value detected</param>
+    /// <param name="force">Detected force</param>
     public void AddStep(float x_value, float y_value, int tot, float force)
     {
         Data d = new Data();
@@ -117,6 +125,10 @@ public class XmlParser
         steps.Add(d);
     }
 
+    /// <summary>
+    /// This function is to be used in order to start recording data for an adaptive game session
+    /// </summary>
+    /// <param name="startTime">Time at wich the recording has started</param>
     public void AddStep(string startTime)
     {
         currentStep = new AdaptiveData();
@@ -124,6 +136,14 @@ public class XmlParser
         currentStep.startTime = startTime;
     }
 
+    /// <summary>
+    /// This function is to be used together with the "AddStep" adaptive function. 
+    /// It is used to save a step previously started
+    /// </summary>
+    /// <param name="x_value">Detected x-value</param>
+    /// <param name="y_value">Detected y-value</param>
+    /// <param name="force">Detected force</param>
+    /// <param name="end_time">Time at which the step has been detected</param>
     public void SaveStep(float x_value, float y_value, float force, string end_time)
     {
         currentStep.endTime = end_time;

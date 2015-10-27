@@ -134,19 +134,29 @@ public class DataManager : MonoBehaviour {
         guiManager.SetInGameCanNumber(sessionCanNumber);
         lastCan = false;
 
-        GameObject[] ducks = GameObject.FindGameObjectsWithTag("Duck");
-        
-        for(int i = 0; i < ducks.Length; i++)
+        if (gameManager.floorType == FloorReceiver.FloorType.Normal)
         {
-            ducks[i].GetComponent<DuckMovement>().StopPath();
+            GameObject[] ducks = GameObject.FindGameObjectsWithTag("Duck");
+
+            for (int i = 0; i < ducks.Length; i++)
+            {
+                ducks[i].GetComponent<DuckMovement>().StopPath();
+            }
+
+            for (int i = 0; i < disabledDucks.Count; i++)
+            {
+                disabledDucks[i].GetComponent<DuckMovement>().StopPath();
+            } 
         }
 
-        for (int i = 0; i < disabledDucks.Count; i++)
+        if (gameManager.floorType == FloorReceiver.FloorType.Normal)
         {
-            disabledDucks[i].GetComponent<DuckMovement>().StopPath();
+            parser.SaveAdaptiveSession(GetTimestamp(DateTime.Now)); 
         }
-
-        parser.SaveAdaptiveSession(GetTimestamp(DateTime.Now));
+        else
+        {
+            parser.SaveSession(GetTimestamp(DateTime.Now));
+        }
     }
 
     public void AddDuckPosition(String name, KeyValuePair<Vector3, Quaternion> t)
@@ -170,19 +180,30 @@ public class DataManager : MonoBehaviour {
         GameObject[] ducks = GameObject.FindGameObjectsWithTag("Duck");
 
         for (int i = 0; i < ducks.Length; i++)
-        { 
+        {
+           
             ducks[i].transform.localPosition = ducksPositions[ducks[i].name].Key;
             ducks[i].transform.localRotation = ducksPositions[ducks[i].name].Value;
-            ducks[i].GetComponent<DuckMovement>().DefinePath();
+
+            if (gameManager.floorType == FloorReceiver.FloorType.Normal)
+            {
+                ducks[i].GetComponent<DuckMovement>().DefinePath(); 
+            }
+
             ducks[i].SetActive(true);
         }
 
         for (int i = 0; i < disabledDucks.Count; i++)
         {
-            disabledDucks[i].GetComponent<DuckMovement>().StopPath();
             disabledDucks[i].transform.localPosition = ducksPositions[disabledDucks[i].name].Key;
             disabledDucks[i].transform.localRotation = ducksPositions[disabledDucks[i].name].Value;
-            disabledDucks[i].GetComponent<DuckMovement>().DefinePath();
+
+            if (gameManager.floorType == FloorReceiver.FloorType.Normal)
+            {
+                disabledDucks[i].GetComponent<DuckMovement>().StopPath();
+                disabledDucks[i].GetComponent<DuckMovement>().DefinePath(); 
+            }
+
             disabledDucks[i].SetActive(true);
         }
 

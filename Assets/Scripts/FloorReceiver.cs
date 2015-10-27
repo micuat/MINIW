@@ -5,6 +5,8 @@ using System;
 
 public class FloorReceiver : MonoBehaviour
 {
+    public enum FloorType { Normal, BarIncreasing, Adaptive};
+
     #region define Osc parameters
 
     [Header("Osc Parameters")]
@@ -22,6 +24,8 @@ public class FloorReceiver : MonoBehaviour
     public int fartherThreshold = 30000;
     public int spawnThreshold = 15000;
     public bool useInterpolation = false;
+    public FloorType type;
+    public static FloorType floorType;
 
     [Header("Game Parameters")]
     /// Object that will be thrown at ducks
@@ -31,7 +35,7 @@ public class FloorReceiver : MonoBehaviour
     private float zForce = 0;
     private float torqueForce = 10;
     private bool spawned = false;
-    private float lowForceValue = 1;
+    private float lowForceValue = 2;
     private float highForceValue = 7;
 
     private GameManager gameManager;
@@ -65,6 +69,8 @@ public class FloorReceiver : MonoBehaviour
             callbacks[new KeyValuePair<OscReceiveController, string>(floorReceiverController, "/niw/client/raw")] = ReceiveMessage;
             callbacks[new KeyValuePair<OscReceiveController, string>(floorReceiverController, "/niw/client/aggregator/floorcontact")] = FloorContact;
         }
+
+        floorType = type;
     }
 
     private bool GetReceiveController(GameObject g, out OscReceiveController r)
@@ -88,6 +94,8 @@ public class FloorReceiver : MonoBehaviour
         gameManager = GameManager.instance;
         guiManager = GUIManager.instance;
         dataManager = DataManager.instance;
+
+        gameManager.SetFloorType(floorType);
     }
 
     void Update()
@@ -102,10 +110,11 @@ public class FloorReceiver : MonoBehaviour
 
     private void FloorContact(OscMessage message)
     {
-        Debug.Log("Received");
+        Debug.Log(message[2]);
         // Check whether we can receive and compute the message
         if (gameManager.canReceive && dataManager.sessionGameTime > 0 && dataManager.sessionDucksInTheGame > 0)
         {
+            Debug.Log(message[0] + " " + message[2]);
             // Check the type of the message received
             switch (message[0] as string)
             {
@@ -122,17 +131,19 @@ public class FloorReceiver : MonoBehaviour
                     else if (guiManager.guiState == GUIManager.GUIState.Void && gameManager.isPlaying)
                     {
                         // ... Show force bar
-                        guiManager.ShowForceBar(true, Remap((float)message[2], 0, 2, dataManager.leftMostDuck, dataManager.rightMostDuck));
+                        guiManager.ShowForceBar(true, Remap((float)message[2], 0, 2, 0, Screen.width));
                         // Record detected step in the xml file
                         dataManager.parser.AddStep(GetTimestamp(DateTime.Now));
+
+                        spawned = false;
                     }
                     break;
                 case "update":
                     // If the game is in Void mode and the player is playing ...
-                    if (guiManager.guiState == GUIManager.GUIState.Void && gameManager.isPlaying)
+                    if (guiManager.guiState == GUIManager.GUIState.Void && gameManager.isPlaying && !spawned)
                     {
                         // Update force bar
-                        guiManager.UpdateForceBar(Remap((float)message[2], 0, 2, dataManager.leftMostDuck, dataManager.rightMostDuck), (float)message[4]);
+                        guiManager.UpdateForceBar(Remap((float)message[2], 0, 2, 0, Screen.width), (float)message[4]);
                     }
                     break;
                 case "remove":
@@ -148,7 +159,7 @@ public class FloorReceiver : MonoBehaviour
                     else if (guiManager.guiState == GUIManager.GUIState.Void && gameManager.isPlaying)
                     {
                         // Update force bar
-                        guiManager.UpdateForceBar(Remap((float)message[2], 0, 2, dataManager.leftMostDuck, dataManager.rightMostDuck), (float)message[4]);
+                        guiManager.UpdateForceBar(Remap((float)message[2], 0, 2, 0, Screen.width), (float)message[4]);
 
                         // Define parameters to be used to throw the can
                         DefineCanParameters(0, 0.5f, (float)message[4], 0, 1, lowForceValue, highForceValue);
@@ -158,6 +169,10 @@ public class FloorReceiver : MonoBehaviour
 
                         // Record detected step in the xml file
                         dataManager.parser.SaveStep((float)message[2], (float)message[3], (float)message[4], GetTimestamp(DateTime.Now));
+
+                        // Can has be spawned. The player has to lift his/her foot in order to be able to throw
+                        // another can
+                        spawned = true;
                     }
                     break;
             }
@@ -297,15 +312,11 @@ public class FloorReceiver : MonoBehaviour
         // Get camera position
         var pos = GameObject.FindGameObjectWithTag("MainCamera").transform.localPosition;
         // Remap x value coming from the floor
-        pos.x = Remap(x_value, 0, 2, -5.5F, 5.5F);
+        pos.x = Remap(x_value, 0, 2, -6.5F, 6.5F);
         // Instanciate a new can
         var c = Instantiate(chunk, pos, Quaternion.identity) as GameObject;
         // Subtract the can from the total amunt
         dataManager.UseCan();
-
-        Remap(pos.x, -5.5f, 5 - 5f, 0, Screen.width);
-        //var canPosition = new Vector3(pos.x, 2.55f, -5.25f);
-        guiManager.ShowForceBar(new Vector3(Remap(pos.x, -5.5f, 5.5f, 0, Screen.width), 0, 0), Remap(zForce, lowForceValue, highForceValue, 0, 1));
 
         // Add a force and a torque to the can previously instanciated
         c.GetComponent<Rigidbody>().AddForce(new Vector3(xForce, yForce, zForce));
@@ -396,5 +407,10 @@ public class FloorReceiver : MonoBehaviour
     private String GetTimestamp(this DateTime value)
     {
         return value.ToString("yyyy.MM.dd.HH.mm.ss.fff");
+    }
+
+    public FloorType GetFloorType()
+    {
+        return floorType;
     }
 }

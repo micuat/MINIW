@@ -30,11 +30,14 @@ public class CollisionManager : MonoBehaviour {
     private static int c = 0;
 
     private DataManager dataManager;
+    private GameManager gameManager;
 
     public void Start()
     {
         // Get DataManager instance
         dataManager = DataManager.instance;
+        // Get GameManager instance
+        gameManager = GameManager.instance;
     }
 
     public void Update()
@@ -73,7 +76,14 @@ public class CollisionManager : MonoBehaviour {
 
         if(duckHit)
         {
-            dataManager.RecordDuckHit(c, collision.gameObject.name);
+            if (gameManager.floorType == FloorReceiver.FloorType.Normal)
+            {
+                dataManager.RecordDuckHit(c);
+            }
+            else
+            {
+                dataManager.RecordDuckHit(c, collision.gameObject.name); 
+            }
         }
         
         // Is it the last can?
