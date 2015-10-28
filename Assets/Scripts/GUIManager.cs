@@ -63,7 +63,7 @@ public class GUIManager : MonoBehaviour
                 // Show final score
                 mainMenu.SetActive(true);
                 topText.enabled = false;
-                centerText.text = !HasWon ? "Game Over!\nFinal score: " + dataManager.GetScore() : "You Won!\nFinal score: " + dataManager.GetScore();
+                centerText.text = !HasWon ? "Game Over!\nFinal score: " + dataManager.GetScore() : "You Win!\nFinal score: " + dataManager.GetScore();
                 centerText.enabled = true;
                 bottomText.enabled = false;
                 break;

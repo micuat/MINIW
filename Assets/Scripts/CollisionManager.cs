@@ -13,7 +13,7 @@ public class CollisionManager : MonoBehaviour {
     /// <summary>
     /// Flag indicating whether the can has hit a duck object
     /// </summary>
-    private bool duckHit = false;
+    private bool isDuckHit = false;
     /// <summary>
     /// The duck object hit by the can
     /// </summary>
@@ -26,8 +26,22 @@ public class CollisionManager : MonoBehaviour {
     /// Velocity at wich the duck will go under the water level once it is hit
     /// </summary>
     public float sinkingVelocity = 0.1f;
-
+    /// <summary>
+    /// Can ID
+    /// </summary>
     private static int c = 0;
+    /// <summary>
+    /// Double multiplier
+    /// </summary>
+    private int doubleMultiplier;
+    /// <summary>
+    /// Ducks hit using this can. It is possible to hit up to 2 ducks with the same can
+    /// </summary>
+    private int ducksHit;
+    /// <summary>
+    /// Flag indicating whetjer the duck can shake
+    /// </summary>
+    private bool canShake;
 
     private DataManager dataManager;
     private GameManager gameManager;
@@ -38,12 +52,17 @@ public class CollisionManager : MonoBehaviour {
         dataManager = DataManager.instance;
         // Get GameManager instance
         gameManager = GameManager.instance;
+
+        doubleMultiplier = 0;
+        ducksHit = 0;
+        isHit = false;
+        canShake = false;
     }
 
     public void Update()
     {
         // When the duck is hit...
-        if(duckHit)
+        if(canShake)
         {
             // .. Shake it!
             Shake();
@@ -55,39 +74,83 @@ public class CollisionManager : MonoBehaviour {
         // If something has already been hit, don't do anything
         if (isHit) return;
         
-        // If we get here, it means that the can has hit something for the first time
-        isHit = true;
-        
         // Is the hit GameObject a Duck?
         if (collision.gameObject.tag == "Duck")
         {
+            // A duck has been hit
+            ducksHit++;
+            // Increase double multiplier
+            doubleMultiplier++;
+
+            // Has the can hit the second duck?
+            if(ducksHit == 2)
+            {
+                // Time to disable the can
+                isHit = true;
+                DisableCan();
+            }
+
             // Keep track of the hit duck before disabling 
             dataManager.AddDisabledDuck(collision.gameObject);
             duck = collision.gameObject;
             // Duck has been hit
-            duckHit = true;
+            isDuckHit = true;
+            // Time to shake
+            canShake = true;
             // Start courite that will make the duck inactive
             StartCoroutine(EliminateDuck(collision.gameObject));
             // Update score
-            dataManager.AddToScore();
+            bool b = ducksHit == 2;
+            dataManager.AddToScore(b);
             // Update ducks number
             dataManager.DuckHit();
         }
-
-        if(duckHit)
+        else if(collision.gameObject.tag == "Terrain")
         {
-            if (gameManager.floorType == FloorReceiver.FloorType.Normal)
-            {
-                dataManager.RecordDuckHit(c);
-            }
-            else
-            {
-                dataManager.RecordDuckHit(c, collision.gameObject.name); 
-            }
+            // Disable the can
+            isHit = true;
+            DisableCan();
         }
-        
+
+        // If a duck has been hit ...
+        if(isDuckHit)
+        {
+            //// ... Record it in the xml file
+            //if (gameManager.floorType == FloorReceiver.FloorType.Normal)
+            //{
+            //    dataManager.RecordDuckHit(c);
+            //}
+            //else
+            //{
+            //    dataManager.RecordDuckHit(c, collision.gameObject.name); 
+            //}
+
+            // Reset flag
+            isDuckHit = false;
+        }
+
+        // Check if it is necessary to update multiplier
+        if (isHit && ducksHit > 0)
+        {
+            dataManager.IncreaseMultiplier();
+        }
+        else if (isHit && ducksHit == 0)
+        {
+            dataManager.ResetMultiplier();
+        }
+
+        // Reset values
+        if (isHit)
+        {
+            doubleMultiplier = 0;
+            ducksHit = 0;
+        }
+    }
+
+    private void DisableCan()
+    {
         // Is it the last can?
-        if(++c == dataManager.canNumber)
+        if (++c == dataManager.canNumber)
         {
             // Notiy it to the Data Manager
             dataManager.LastCan();
@@ -106,7 +169,7 @@ public class CollisionManager : MonoBehaviour {
         g.SetActive(false);
 
         //Reset values
-        duckHit = false;
+        canShake = false;
         count = 1;
     } 
 

@@ -16,6 +16,7 @@ public class DataManager : MonoBehaviour {
     private int ducksInTheGame;
     private float score;
 
+    private int globalMultiplier;
     public float sessionGameTime { get; private set; }
     public int sessionDucksInTheGame { get; private set; }
     private int sessionCanNumber;
@@ -41,6 +42,7 @@ public class DataManager : MonoBehaviour {
         ducksInTheGame = GameObject.FindGameObjectsWithTag("Duck").Length;
 
         lastCan = false;
+        globalMultiplier = 1;
 
         rightMostDuck = 0;
         leftMostDuck = Screen.width;
@@ -62,7 +64,7 @@ public class DataManager : MonoBehaviour {
 
     void Update()
     {
-        if(ducksInTheGame == 0 && guiManager.guiState == GUIManager.GUIState.Void)
+        if(sessionDucksInTheGame == 0 && guiManager.guiState == GUIManager.GUIState.Void)
         {
             ResetParameters();
             gameManager.EndGame(true);
@@ -98,10 +100,29 @@ public class DataManager : MonoBehaviour {
         }
     }
 
-    public void AddToScore()
+    public void AddToScore(bool doubleHit = false)
     {
-        score += (duckPoints * sessionGameTime);
+        if (doubleHit)
+        {
+            score += (duckPoints * globalMultiplier)*2;
+        }
+        else
+        {
+            score += (duckPoints * globalMultiplier);
+        }
+
         guiManager.SetInGameScore(Mathf.RoundToInt(score));
+    }
+
+    public void ResetMultiplier()
+    {
+        globalMultiplier = 1;
+    }
+
+    public void IncreaseMultiplier()
+    {
+        Debug.Log(globalMultiplier);
+        globalMultiplier++;
     }
 
     public int GetScore()
@@ -133,6 +154,7 @@ public class DataManager : MonoBehaviour {
         sessionCanNumber = canNumber;
         guiManager.SetInGameCanNumber(sessionCanNumber);
         lastCan = false;
+        globalMultiplier = 1;
 
         if (gameManager.floorType == FloorReceiver.FloorType.Normal)
         {
@@ -173,6 +195,11 @@ public class DataManager : MonoBehaviour {
     {
         sessionCanNumber--;
         guiManager.SetInGameCanNumber(sessionCanNumber);
+    }
+
+    public int CanLeft()
+    {
+        return sessionCanNumber;
     }
 
     public void ResetDucks()
@@ -232,7 +259,9 @@ public class DataManager : MonoBehaviour {
 
     public void DefineBoundaries(Vector3 worldPosition)
     {
-        Vector3 v = Camera.main.WorldToScreenPoint(worldPosition);
+        Vector3 n = new Vector3(worldPosition.x * 1.272727F, worldPosition.y, worldPosition.z);
+
+        Vector3 v = Camera.main.WorldToScreenPoint(n);
 
         if(v.x > rightMostDuck)
         {

@@ -165,14 +165,15 @@ public class FloorReceiver : MonoBehaviour
                         DefineCanParameters(0, 0.5f, (float)message[4], 0, 1, lowForceValue, highForceValue);
 
                         // Instanciate and throw the can using the defined parameters
-                        ThrowCan((float)message[2]);
+                        if (ThrowCan((float)message[2]))
+                        {
+                            // Record detected step in the xml file
+                            dataManager.parser.SaveStep((float)message[2], (float)message[3], (float)message[4], GetTimestamp(DateTime.Now));
 
-                        // Record detected step in the xml file
-                        dataManager.parser.SaveStep((float)message[2], (float)message[3], (float)message[4], GetTimestamp(DateTime.Now));
-
-                        // Can has be spawned. The player has to lift his/her foot in order to be able to throw
-                        // another can
-                        spawned = true;
+                            // Can has be spawned. The player has to lift his/her foot in order to be able to throw
+                            // another can
+                            spawned = true; 
+                        }
                     }
                     break;
             }
@@ -253,14 +254,15 @@ public class FloorReceiver : MonoBehaviour
                             DefineCanParameters(0, 0.5f, compute.tot, closerThreshold, fartherThreshold, lowForceValue, highForceValue);
                             
                             // Instanciate and throw the can using the defined parameters
-                            ThrowCan(compute.x_value);
+                            if (ThrowCan(compute.x_value))
+                            {
+                                // Can has be spawned. The player has to lift his/her foot in order to be able to throw
+                                // another can
+                                spawned = true;
 
-                            // Can has be spawned. The player has to lift his/her foot in order to be able to throw
-                            // another can
-                            spawned = true;
-
-                            // Record detected step in the xml file
-                            dataManager.parser.AddStep(compute.x_value, compute.y_value, compute.tot, zForce);
+                                // Record detected step in the xml file
+                                dataManager.parser.AddStep(compute.x_value, compute.y_value, compute.tot, zForce); 
+                            }
                         }
                     }
                     else // Use fixed parameters to throw can
@@ -272,21 +274,23 @@ public class FloorReceiver : MonoBehaviour
                             {
                                 DefineCanParameters(0, 0.5f, 4.0f);
 
-                                ThrowCan(compute.x_value);
+                                if (ThrowCan(compute.x_value))
+                                {
+                                    spawned = true;
 
-                                spawned = true;
-
-                                dataManager.parser.AddStep(compute.x_value, compute.y_value, compute.tot, zForce);
+                                    dataManager.parser.AddStep(compute.x_value, compute.y_value, compute.tot, zForce); 
+                                }
                             }
                             else if (compute.tot >= fartherThreshold)
                             {
                                 DefineCanParameters(0, 0.5f, 5.5f);
 
-                                ThrowCan(compute.x_value);
+                                if (ThrowCan(compute.x_value))
+                                {
+                                    spawned = true;
 
-                                spawned = true;
-
-                                dataManager.parser.AddStep(compute.x_value, compute.y_value, compute.tot, zForce);
+                                    dataManager.parser.AddStep(compute.x_value, compute.y_value, compute.tot, zForce); 
+                                }
                             }
                         } 
                     }
@@ -307,20 +311,29 @@ public class FloorReceiver : MonoBehaviour
         }
     }
 
-    private void ThrowCan(float x_value)
+    private bool ThrowCan(float x_value)
     {
-        // Get camera position
-        var pos = GameObject.FindGameObjectWithTag("MainCamera").transform.localPosition;
-        // Remap x value coming from the floor
-        pos.x = Remap(x_value, 0, 2, -6.5F, 6.5F);
-        // Instanciate a new can
-        var c = Instantiate(chunk, pos, Quaternion.identity) as GameObject;
-        // Subtract the can from the total amunt
-        dataManager.UseCan();
+        if (dataManager.CanLeft() > 0)
+        {
+            // Get camera position
+            var pos = GameObject.FindGameObjectWithTag("MainCamera").transform.localPosition;
+            // Remap x value coming from the floor
+            pos.x = Remap(x_value, 0, 2, -7F, 7F);
+            // Instanciate a new can
+            var c = Instantiate(chunk, pos, Quaternion.identity) as GameObject;
+            // Subtract the can from the total amunt
+            dataManager.UseCan();
 
-        // Add a force and a torque to the can previously instanciated
-        c.GetComponent<Rigidbody>().AddForce(new Vector3(xForce, yForce, zForce));
-        c.GetComponent<Rigidbody>().AddTorque(new Vector3(torqueForce, 0, 0));
+            // Add a force and a torque to the can previously instanciated
+            c.GetComponent<Rigidbody>().AddForce(new Vector3(xForce, yForce, zForce));
+            c.GetComponent<Rigidbody>().AddTorque(new Vector3(torqueForce, 0, 0));
+
+            // Can correctly instanciate
+            return true;
+        }
+
+        // Imposible to instanciate can. User has alread thrown all the available can
+        return false;
     }
 
     private int counter = 0;
