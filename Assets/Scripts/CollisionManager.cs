@@ -27,9 +27,13 @@ public class CollisionManager : MonoBehaviour {
     /// </summary>
     public float sinkingVelocity = 0.1f;
     /// <summary>
-    /// Can ID
+    /// Can counter
     /// </summary>
     private static int c = 0;
+    /// <summary>
+    /// Can ID
+    /// </summary>
+    private int canID;
     /// <summary>
     /// Double multiplier
     /// </summary>
@@ -42,6 +46,10 @@ public class CollisionManager : MonoBehaviour {
     /// Flag indicating whetjer the duck can shake
     /// </summary>
     private bool canShake;
+    /// <summary>
+    /// Sound to be played when a duck is hit
+    /// </summary>
+    public AudioClip audioDuck;
 
     private DataManager dataManager;
     private GameManager gameManager;
@@ -57,6 +65,7 @@ public class CollisionManager : MonoBehaviour {
         ducksHit = 0;
         isHit = false;
         canShake = false;
+        canID = -1;
     }
 
     public void Update()
@@ -73,10 +82,19 @@ public class CollisionManager : MonoBehaviour {
     {
         // If something has already been hit, don't do anything
         if (isHit) return;
+
+        if(canID == -1)
+        {
+            canID = c;
+            c++;
+        }
         
         // Is the hit GameObject a Duck?
         if (collision.gameObject.tag == "Duck")
         {
+            // Play sound
+            AudioSource.PlayClipAtPoint(audioDuck, Camera.main.transform.position);
+
             // A duck has been hit
             ducksHit++;
             // Increase double multiplier
@@ -115,15 +133,15 @@ public class CollisionManager : MonoBehaviour {
         // If a duck has been hit ...
         if(isDuckHit)
         {
-            //// ... Record it in the xml file
-            //if (gameManager.floorType == FloorReceiver.FloorType.Normal)
-            //{
-            //    dataManager.RecordDuckHit(c);
-            //}
-            //else
-            //{
-            //    dataManager.RecordDuckHit(c, collision.gameObject.name); 
-            //}
+            // ... Record it in the xml file
+            if (gameManager.floorType == FloorReceiver.FloorType.Normal)
+            {
+                dataManager.RecordDuckHit(canID);
+            }
+            else
+            {
+                dataManager.RecordDuckHit(canID, collision.gameObject.name);
+            }
 
             // Reset flag
             isDuckHit = false;
@@ -150,7 +168,7 @@ public class CollisionManager : MonoBehaviour {
     private void DisableCan()
     {
         // Is it the last can?
-        if (++c == dataManager.canNumber)
+        if (c == dataManager.canNumber)
         {
             // Notiy it to the Data Manager
             dataManager.LastCan();

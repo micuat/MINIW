@@ -46,8 +46,9 @@ public class GameManager : MonoBehaviour
         }
 
         guiManager.ShowGUI(GUIManager.GUIState.Void);
-        
-        isPlaying = true;
+
+        // isPlaying = true;
+        SetPlayingStatus(true);
     }
 
     public void EndGame(bool hasWon)

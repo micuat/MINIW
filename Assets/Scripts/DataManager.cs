@@ -60,6 +60,8 @@ public class DataManager : MonoBehaviour {
         sessionGameTime = gameTime;
         sessionDucksInTheGame = ducksInTheGame;
         sessionCanNumber = canNumber;
+
+        guiManager.SetInGameCanNumber(sessionCanNumber);
     }
 
     void Update()
@@ -173,11 +175,11 @@ public class DataManager : MonoBehaviour {
 
         if (gameManager.floorType == FloorReceiver.FloorType.Normal)
         {
-            parser.SaveAdaptiveSession(GetTimestamp(DateTime.Now)); 
+            parser.SaveSession(GetTimestamp(DateTime.Now)); 
         }
         else
         {
-            parser.SaveSession(GetTimestamp(DateTime.Now));
+            parser.SaveAdaptiveSession(GetTimestamp(DateTime.Now));
         }
     }
 

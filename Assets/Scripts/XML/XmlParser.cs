@@ -32,7 +32,7 @@ public class XmlParser
         public float y_value;
         public float force;
         public bool hasHit;
-        public string duckName;
+        public List<string> ducksHit;
 
     }
 
@@ -95,13 +95,14 @@ public class XmlParser
                                         new XAttribute("y_value", c.y_value),
                                         new XAttribute("force", c.force),
                                         new XAttribute("has_hit", c.hasHit),
-                                        new XAttribute("duck_name", c.duckName))
+                                        from d in c.ducksHit
+                                        select new XElement("Duck", new XAttribute("name", d)))
         );
 
         doc.Descendants("Data").First().Add(currentSession);
         doc.Save(path);
 
-        steps.Clear();
+        adaptiveSteps.Clear();
     }
 
     /// <summary>
@@ -151,7 +152,7 @@ public class XmlParser
         currentStep.y_value = y_value;
         currentStep.force = force;
         currentStep.hasHit = false;
-        currentStep.duckName = "";
+        currentStep.ducksHit = new List<string>();
 
         adaptiveSteps.Add(currentStep);
     }
@@ -185,16 +186,24 @@ public class XmlParser
 
     public void SetDuckHit(int canId, string name)
     {
+        // It is not possible to just update data contained in the list.
+        // It is necessary to create a new element, and then add it
         AdaptiveData d = new AdaptiveData();
 
+        // Those values needn't to be updated
         d.startTime = adaptiveSteps[canId].startTime;
         d.endTime = adaptiveSteps[canId].endTime;
         d.x_value = adaptiveSteps[canId].x_value;
         d.y_value = adaptiveSteps[canId].y_value;
         d.force = adaptiveSteps[canId].force;
+        // A duck has been hit
         d.hasHit = true;
-        d.duckName = name;
-
+        // Keep track of the previosly hit ducks (if any)
+        d.ducksHit = new List<string>(adaptiveSteps[canId].ducksHit);
+        // Add the new one
+        d.ducksHit.Add(name);
+        
+        // Update element in the list
         adaptiveSteps[canId] = d;
     }
 }

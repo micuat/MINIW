@@ -114,7 +114,6 @@ public class FloorReceiver : MonoBehaviour
         // Check whether we can receive and compute the message
         if (gameManager.canReceive && dataManager.sessionGameTime > 0 && dataManager.sessionDucksInTheGame > 0)
         {
-            Debug.Log(message[0] + " " + message[2]);
             // Check the type of the message received
             switch (message[0] as string)
             {
@@ -177,7 +176,6 @@ public class FloorReceiver : MonoBehaviour
                     }
                     break;
             }
-
         }
     }
 
