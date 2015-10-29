@@ -11,6 +11,7 @@ public class DataManager : MonoBehaviour {
     [Header("Game Parameters")]
     public float gameTime;
     public int duckPoints;
+    public int canLeftPoints;
     public int canNumber;
     public string xmlFileName = "data";
     private int ducksInTheGame;
@@ -68,6 +69,7 @@ public class DataManager : MonoBehaviour {
     {
         if(sessionDucksInTheGame == 0 && guiManager.guiState == GUIManager.GUIState.Void)
         {
+            score += sessionCanNumber * canLeftPoints;
             ResetParameters();
             gameManager.EndGame(true);
         }

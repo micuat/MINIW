@@ -123,7 +123,7 @@ public class GUIManager : MonoBehaviour
 
     public void UpdateForceBar(float xPosition, float length)
     {
-        ForceBar.GetComponent<Image>().fillAmount = length;
+        ForceBar.GetComponent<Image>().fillAmount = 1;
 
         if (Mathf.Abs(ForceBar.rectTransform.position.x - xPosition) > 5)
         {
