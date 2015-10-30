@@ -23,7 +23,7 @@ public class DuckMovement : MonoBehaviour {
         }
         else
         {
-            dataManager.DefineBoundaries(gameObject.transform.position);
+            // dataManager.DefineBoundaries(gameObject.transform.position);
         }
         
     }

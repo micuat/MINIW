@@ -83,6 +83,7 @@ public class CollisionManager : MonoBehaviour {
         // If something has already been hit, don't do anything
         if (isHit) return;
 
+        // Define can ID
         if(canID == -1)
         {
             canID = c;
@@ -108,11 +109,11 @@ public class CollisionManager : MonoBehaviour {
                 DisableCan();
             }
 
-            // Keep track of the hit duck before disabling 
+            // Keep track of the hit duck before disabling it
             dataManager.AddDisabledDuck(collision.gameObject);
             duck = collision.gameObject;
             // Duck has been hit
-            isDuckHit = true;
+            RecordDuckHit(collision.gameObject.name);
             // Time to shake
             canShake = true;
             // Start courite that will make the duck inactive
@@ -130,23 +131,6 @@ public class CollisionManager : MonoBehaviour {
             DisableCan();
         }
 
-        // If a duck has been hit ...
-        if(isDuckHit)
-        {
-            // ... Record it in the xml file
-            if (gameManager.floorType == FloorReceiver.FloorType.Normal)
-            {
-                dataManager.RecordDuckHit(canID);
-            }
-            else
-            {
-                dataManager.RecordDuckHit(canID, collision.gameObject.name);
-            }
-
-            // Reset flag
-            isDuckHit = false;
-        }
-
         // Check if it is necessary to update multiplier
         if (isHit && ducksHit > 0)
         {
@@ -162,6 +146,19 @@ public class CollisionManager : MonoBehaviour {
         {
             doubleMultiplier = 0;
             ducksHit = 0;
+        }
+    }
+
+    private void RecordDuckHit(string name)
+    {
+        // Record a hit the xml file
+        if (gameManager.floorType == FloorReceiver.FloorType.Normal)
+        {
+            dataManager.RecordDuckHit(canID);
+        }
+        else
+        {
+            dataManager.RecordDuckHit(canID, name);
         }
     }
 

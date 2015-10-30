@@ -72,6 +72,7 @@ public class GUIManager : MonoBehaviour
                 inGameCanLeft.enabled = gameManager.limitTime ? false : true;
                 inGameTopPanel.SetActive(true);
                 mainMenu.SetActive(false);
+                dataManager.SetScore(0);
                 Time.timeScale = 1;
                 break;
         }

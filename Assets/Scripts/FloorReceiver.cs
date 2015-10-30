@@ -110,7 +110,6 @@ public class FloorReceiver : MonoBehaviour
 
     private void FloorContact(OscMessage message)
     {
-        Debug.Log(message[2]);
         // Check whether we can receive and compute the message
         if (gameManager.canReceive && dataManager.sessionGameTime > 0 && dataManager.sessionDucksInTheGame > 0)
         {
@@ -122,8 +121,7 @@ public class FloorReceiver : MonoBehaviour
                     // If the player hasn't started the game yet ...
                     if (!gameManager.isPlaying)
                     {
-                        /// ... Zero the score, and show the Void GUIState (that is, make the Main Menu disappear)
-                        dataManager.SetScore(0);
+                        /// ... Show the Void GUIState (that is, make the Main Menu disappear)
                         guiManager.ShowGUI(GUIManager.GUIState.Void);
                     }
                     // If the game is in Void mode and the player is playing ...
@@ -316,7 +314,7 @@ public class FloorReceiver : MonoBehaviour
             // Get camera position
             var pos = GameObject.FindGameObjectWithTag("MainCamera").transform.localPosition;
             // Remap x value coming from the floor
-            pos.x = Remap(x_value, 0, 2, -7F, 7F);
+            pos.x = Remap(x_value, 0, 2, dataManager.GetLeftLimitXPoint(), dataManager.GetRightLimitXPoint());
             // Instanciate a new can
             var c = Instantiate(chunk, pos, Quaternion.identity) as GameObject;
             // Subtract the can from the total amunt

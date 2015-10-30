@@ -28,6 +28,8 @@ public class DataManager : MonoBehaviour {
     [HideInInspector]
     public XmlParser parser;
 
+    public GameObject leftBorder;
+    public GameObject rightBorder;
     public float leftMostDuck { get; private set; }
     public float rightMostDuck { get; private set; }
 
@@ -63,6 +65,8 @@ public class DataManager : MonoBehaviour {
         sessionCanNumber = canNumber;
 
         guiManager.SetInGameCanNumber(sessionCanNumber);
+
+        DefineBoundaries();
     }
 
     void Update()
@@ -259,6 +263,22 @@ public class DataManager : MonoBehaviour {
     public void RecordDuckHit(int id, string name)
     {
         parser.SetDuckHit(id, name);
+    }
+
+    public void DefineBoundaries()
+    {
+        leftMostDuck = Camera.main.WorldToScreenPoint(leftBorder.transform.position).x;
+        rightMostDuck = Camera.main.WorldToScreenPoint(rightBorder.transform.position).x;
+    }
+
+    public float GetLeftLimitXPoint()
+    {
+        return leftBorder.transform.localPosition.x;
+    }
+
+    public float GetRightLimitXPoint()
+    {
+        return rightBorder.transform.localPosition.x;
     }
 
     public void DefineBoundaries(Vector3 worldPosition)
