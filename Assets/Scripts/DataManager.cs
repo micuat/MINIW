@@ -9,29 +9,48 @@ public class DataManager : MonoBehaviour {
     static public DataManager instance;
 
     [Header("Game Parameters")]
+    // Time that the game will last
     public float gameTime;
+    // Points received for each hit duck
     public int duckPoints;
+    // Points assigned for each can not used 
     public int canLeftPoints;
+    /// Object that will be thrown at ducks
+    public GameObject canObject;
+    // Number of can available to the player
     public int canNumber;
-    public string xmlFileName = "data";
+    // Collection storing the can
+    public List<GameObject> canList;
+    // Left and right borders. The user will be able to throw a can in the area conained between those two objects
+    public GameObject leftBorder;
+    public GameObject rightBorder;
+    // UI boundaries. The force (if used) will move between those two values.
+    public float leftMostUIBorder { get; private set; }
+    public float rightMostUIBorder { get; private set; }
+    // Duck to be killed
     private int ducksInTheGame;
+    // Score
     private float score;
-
+    // Combo multiplier
     private int globalMultiplier;
+
+    // Those variables are used during each session
     public float sessionGameTime { get; private set; }
     public int sessionDucksInTheGame { get; private set; }
     private int sessionCanNumber;
     public bool lastCan { get; private set; }
+
+    // The following two collections are used to restart the game
+    // List of hit duck during the current sessions game
     private List<GameObject> disabledDucks;
+    // Dictionary storing location and rotation data regarding all the ducks contained in the game
     private Dictionary<String, KeyValuePair<Vector3, Quaternion>> ducksPositions;
 
-    [HideInInspector]
-    public XmlParser parser;
-
-    public GameObject leftBorder;
-    public GameObject rightBorder;
-    public float leftMostDuck { get; private set; }
-    public float rightMostDuck { get; private set; }
+    [Header("Xml Parser")]
+    // Xml file name. This is the file in which to record all game data
+    public string xmlFileName = "data";
+    // Xml parser
+    private XmlParser parser;
 
     private GUIManager guiManager;
     private GameManager gameManager;
@@ -46,26 +65,42 @@ public class DataManager : MonoBehaviour {
 
         lastCan = false;
         globalMultiplier = 1;
+        leftMostUIBorder = 0;
+        rightMostUIBorder = 0;
 
-        rightMostDuck = 0;
-        leftMostDuck = Screen.width;
-        
         parser = new XmlParser(Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\" + xmlFileName + ".xml");
+
+        // Instanciate all the can
+        canList = new List<GameObject>();
+        for(int i = 0; i < canNumber; i++)
+        {
+            // Instanciate a new object
+            GameObject c = Instantiate(canObject, new Vector3(0, 10, 0), Quaternion.identity) as GameObject;
+            // Set canID
+            c.SendMessage("SetID", i);
+            // Disable can
+            c.SendMessage("SetCanActive", false);
+            // Add the can to the collection
+            canList.Add(c);
+        }
     }
 
     public void Start()
     {
+        // Get instances
         guiManager = GUIManager.instance;
         gameManager = GameManager.instance;
 
+        // Variable inizialization
         score = 0;
-
         sessionGameTime = gameTime;
         sessionDucksInTheGame = ducksInTheGame;
         sessionCanNumber = canNumber;
 
+        // Inizialize GUI
         guiManager.SetInGameCanNumber(sessionCanNumber);
 
+        // Define game boundaries
         DefineBoundaries();
     }
 
@@ -156,7 +191,15 @@ public class DataManager : MonoBehaviour {
 
     private void ResetParameters()
     {
-        // score = 0;
+        if (gameManager.floorType == FloorReceiver.FloorType.Normal)
+        {
+            parser.SaveSession(UtilityClass.GetTimestamp(DateTime.Now));
+        }
+        else
+        {
+            parser.SaveAdaptiveSession(UtilityClass.GetTimestamp(DateTime.Now));
+        }
+
         sessionDucksInTheGame = ducksInTheGame;
         sessionGameTime = gameTime;
         sessionCanNumber = canNumber;
@@ -178,15 +221,6 @@ public class DataManager : MonoBehaviour {
                 disabledDucks[i].GetComponent<DuckMovement>().StopPath();
             } 
         }
-
-        if (gameManager.floorType == FloorReceiver.FloorType.Normal)
-        {
-            parser.SaveSession(GetTimestamp(DateTime.Now)); 
-        }
-        else
-        {
-            parser.SaveAdaptiveSession(GetTimestamp(DateTime.Now));
-        }
     }
 
     public void AddDuckPosition(String name, KeyValuePair<Vector3, Quaternion> t)
@@ -199,15 +233,32 @@ public class DataManager : MonoBehaviour {
         disabledDucks.Add(g);
     }
 
-    public void UseCan()
+    public GameObject UseCan(Vector3 startPosition)
     {
+        // Get can
+        GameObject c = canList[GetCurrentCanID()];
+        // Reset its position
+        c.transform.localPosition = startPosition;
+        // Reset its rotation
+        c.transform.localRotation = Quaternion.identity;
+        // Activate can
+        c.SendMessage("SetCanActive", true);
+        // Update can counter
         sessionCanNumber--;
+        // Update GUI
         guiManager.SetInGameCanNumber(sessionCanNumber);
+        // Return game object
+        return c;
     }
 
     public int CanLeft()
     {
         return sessionCanNumber;
+    }
+
+    public int GetCurrentCanID()
+    {
+        return (canNumber - sessionCanNumber - 1);
     }
 
     public void ResetDucks()
@@ -250,9 +301,24 @@ public class DataManager : MonoBehaviour {
         return sessionCanNumber == 0 ? true : false;
     }
 
-    private String GetTimestamp(this DateTime value)
+    public void AddStep(int canID, string start_time)
     {
-        return value.ToString("yyyy.MM.dd.HH.mm.ss.fff");
+        parser.AddStep(canID, start_time);
+    }
+
+    public void AddStep(float x_value, float y_value, int tot, float force)
+    {
+        parser.AddStep(x_value, y_value, tot, force);
+    }
+
+    public void SaveStep(int canID, float x_value, float y_value, float force, string end_time)
+    {
+        parser.SaveStep(canID, x_value, y_value, force, end_time);
+    }
+
+    public void AddSession(string start_time)
+    {
+        parser.AddSession(start_time);
     }
 
     public void RecordDuckHit(int id)
@@ -267,8 +333,8 @@ public class DataManager : MonoBehaviour {
 
     public void DefineBoundaries()
     {
-        leftMostDuck = Camera.main.WorldToScreenPoint(leftBorder.transform.position).x;
-        rightMostDuck = Camera.main.WorldToScreenPoint(rightBorder.transform.position).x;
+        leftMostUIBorder = Camera.main.WorldToScreenPoint(leftBorder.transform.position).x;
+        rightMostUIBorder = Camera.main.WorldToScreenPoint(rightBorder.transform.position).x;
     }
 
     public float GetLeftLimitXPoint()
@@ -279,22 +345,5 @@ public class DataManager : MonoBehaviour {
     public float GetRightLimitXPoint()
     {
         return rightBorder.transform.localPosition.x;
-    }
-
-    public void DefineBoundaries(Vector3 worldPosition)
-    {
-        Vector3 n = new Vector3(worldPosition.x * 1.272727F, worldPosition.y, worldPosition.z);
-
-        Vector3 v = Camera.main.WorldToScreenPoint(n);
-
-        if(v.x > rightMostDuck)
-        {
-            rightMostDuck = v.x;
-        }
-
-        if(v.x < leftMostDuck)
-        {
-            leftMostDuck = v.x;
-        }
     }
 }

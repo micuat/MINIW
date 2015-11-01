@@ -10,10 +10,12 @@ public class FloorReceiver : MonoBehaviour
     #region define Osc parameters
 
     [Header("Osc Parameters")]
+    public float lowestXValueNIW;
+    public float highestXValueNIW;
+    public float lowestForceValueNIW;
+    public float highestForceValueNIW;
     public GameObject receiver;
-
     private OscReceiveController floorReceiverController;
-
     // Dictionary storing all the callbacks used with the Vicon and Floor OscReceivers
     private Dictionary<KeyValuePair<OscReceiveController, string>, OscMessageEvent> callbacks;
 
@@ -28,8 +30,6 @@ public class FloorReceiver : MonoBehaviour
     public static FloorType floorType;
 
     [Header("Game Parameters")]
-    /// Object that will be thrown at ducks
-    public GameObject chunk;
     private float xForce = 0;
     private float yForce = 0;
     private float zForce = 0;
@@ -102,7 +102,8 @@ public class FloorReceiver : MonoBehaviour
     {
         if(gameManager.isPlaying && Input.GetKeyDown(KeyCode.Alpha7))
         {
-            var c = Instantiate(chunk, GameObject.FindGameObjectWithTag("MainCamera").transform.localPosition, Quaternion.identity) as GameObject;
+            var c = dataManager.UseCan(Camera.main.transform.localPosition);
+
             c.GetComponent<Rigidbody>().AddForce(new Vector3(0, 0.5f, 4f));
             c.GetComponent<Rigidbody>().AddTorque(new Vector3(10, 0, 0));
         }
@@ -127,10 +128,11 @@ public class FloorReceiver : MonoBehaviour
                     // If the game is in Void mode and the player is playing ...
                     else if (guiManager.guiState == GUIManager.GUIState.Void && gameManager.isPlaying)
                     {
-                        // ... Show force bar
-                        guiManager.ShowForceBar(true, Remap((float)message[2], 0, 2, dataManager.leftMostDuck, dataManager.rightMostDuck));
+                        // ... Show force bar.
+                        // It is essential to remap the x-axes value received since we want it to be in screen coordinate
+                        guiManager.EnableForceBar(true, UtilityClass.Remap((float)message[2], lowestXValueNIW, highForceValue, dataManager.leftMostUIBorder, dataManager.rightMostUIBorder));
                         // Record detected step in the xml file
-                        dataManager.parser.AddStep(GetTimestamp(DateTime.Now));
+                        dataManager.AddStep(dataManager.GetCurrentCanID() + 1, UtilityClass.GetTimestamp(DateTime.Now));
 
                         spawned = false;
                     }
@@ -140,7 +142,7 @@ public class FloorReceiver : MonoBehaviour
                     if (guiManager.guiState == GUIManager.GUIState.Void && gameManager.isPlaying && !spawned)
                     {
                         // Update force bar
-                        guiManager.UpdateForceBar(Remap((float)message[2], 0, 2, dataManager.leftMostDuck, dataManager.rightMostDuck), (float)message[4]);
+                        guiManager.UpdateForceBar(UtilityClass.Remap((float)message[2], lowestXValueNIW, highestXValueNIW, dataManager.leftMostUIBorder, dataManager.rightMostUIBorder), (float)message[4]);
                     }
                     break;
                 case "remove":
@@ -150,22 +152,22 @@ public class FloorReceiver : MonoBehaviour
                         // Start playing
                         gameManager.SetPlayingStatus(true);
                         // Add a new session in the xml file
-                        dataManager.parser.AddSession(GetTimestamp(DateTime.Now));
+                        dataManager.AddSession(UtilityClass.GetTimestamp(DateTime.Now));
                     }
                     // If the game is in Void mode and the player is playing ...
                     else if (guiManager.guiState == GUIManager.GUIState.Void && gameManager.isPlaying)
                     {
                         // Update force bar
-                        guiManager.UpdateForceBar(Remap((float)message[2], 0, 2, dataManager.leftMostDuck, dataManager.rightMostDuck), (float)message[4]);
+                        guiManager.UpdateForceBar(UtilityClass.Remap((float)message[2], lowestXValueNIW, highestXValueNIW, dataManager.leftMostUIBorder, dataManager.rightMostUIBorder), (float)message[4]);
 
                         // Define parameters to be used to throw the can
-                        DefineCanParameters(0, 0.5f, (float)message[4], 0, 1, lowForceValue, highForceValue);
+                        DefineCanParameters(0, 0.5f, (float)message[4], lowestForceValueNIW, highestForceValueNIW, lowForceValue, highForceValue);
 
                         // Instanciate and throw the can using the defined parameters
                         if (ThrowCan((float)message[2]))
                         {
                             // Record detected step in the xml file
-                            dataManager.parser.SaveStep((float)message[2], (float)message[3], (float)message[4], GetTimestamp(DateTime.Now));
+                            dataManager.SaveStep(dataManager.GetCurrentCanID(), (float)message[2], (float)message[3], (float)message[4], UtilityClass.GetTimestamp(DateTime.Now));
 
                             // Can has be spawned. The player has to lift his/her foot in order to be able to throw
                             // another can
@@ -188,7 +190,7 @@ public class FloorReceiver : MonoBehaviour
     {
         xForce = xforce;
         yForce = yforce;
-        zForce = Remap(zforce, from_old, to_old, from_new, to_new);
+        zForce = UtilityClass.Remap(zforce, from_old, to_old, from_new, to_new);
 
         // zForce can be greater than highForceValue if we get an fsr value higher than furtherThreshold
         if (zForce > to_new)
@@ -257,7 +259,7 @@ public class FloorReceiver : MonoBehaviour
                                 spawned = true;
 
                                 // Record detected step in the xml file
-                                dataManager.parser.AddStep(compute.x_value, compute.y_value, compute.tot, zForce); 
+                                dataManager.AddStep(compute.x_value, compute.y_value, compute.tot, zForce); 
                             }
                         }
                     }
@@ -274,7 +276,7 @@ public class FloorReceiver : MonoBehaviour
                                 {
                                     spawned = true;
 
-                                    dataManager.parser.AddStep(compute.x_value, compute.y_value, compute.tot, zForce); 
+                                    dataManager.AddStep(compute.x_value, compute.y_value, compute.tot, zForce); 
                                 }
                             }
                             else if (compute.tot >= fartherThreshold)
@@ -285,7 +287,7 @@ public class FloorReceiver : MonoBehaviour
                                 {
                                     spawned = true;
 
-                                    dataManager.parser.AddStep(compute.x_value, compute.y_value, compute.tot, zForce); 
+                                    dataManager.AddStep(compute.x_value, compute.y_value, compute.tot, zForce); 
                                 }
                             }
                         } 
@@ -302,7 +304,7 @@ public class FloorReceiver : MonoBehaviour
                 // Start playing
                 gameManager.SetPlayingStatus(true);
                 // Add a new session in the xml file
-                dataManager.parser.AddSession(GetTimestamp(DateTime.Now));
+                dataManager.AddSession(UtilityClass.GetTimestamp(DateTime.Now));
             } 
         }
     }
@@ -314,17 +316,15 @@ public class FloorReceiver : MonoBehaviour
             // Get camera position
             var pos = GameObject.FindGameObjectWithTag("MainCamera").transform.localPosition;
             // Remap x value coming from the floor
-            pos.x = Remap(x_value, 0, 2, dataManager.GetLeftLimitXPoint(), dataManager.GetRightLimitXPoint());
-            // Instanciate a new can
-            var c = Instantiate(chunk, pos, Quaternion.identity) as GameObject;
-            // Subtract the can from the total amunt
-            dataManager.UseCan();
+            pos.x = UtilityClass.Remap(x_value, lowestXValueNIW, highestXValueNIW, dataManager.GetLeftLimitXPoint(), dataManager.GetRightLimitXPoint());
+            // Get a can
+            GameObject c = dataManager.UseCan(pos);
 
             // Add a force and a torque to the can previously instanciated
             c.GetComponent<Rigidbody>().AddForce(new Vector3(xForce, yForce, zForce));
             c.GetComponent<Rigidbody>().AddTorque(new Vector3(torqueForce, 0, 0));
 
-            // Can correctly instanciate
+            // Can correctly instanciated
             return true;
         }
 
@@ -399,11 +399,6 @@ public class FloorReceiver : MonoBehaviour
         data.y_value = ((float)(4 + (int)message[3 * 4 + 0] + (int)message[3 * 4 + 3] + (int)message[1 * 4 + 0] + (int)message[1 * 4 + 3]) / (float)(8 + data.tot));
     }
 
-    private float Remap(float value, float from1, float to1, float from2, float to2)
-    {
-            return (value - from1) / (to1 - from1) * (to2 - from2) + from2;
-    }
-
     public void OnDestroy()
     {
         // detach from the OscAddressManager
@@ -411,11 +406,6 @@ public class FloorReceiver : MonoBehaviour
         {
             e.Key.Key.Manager.Detach(e.Key.Value, e.Value);
         }
-    }
-    
-    private String GetTimestamp(this DateTime value)
-    {
-        return value.ToString("yyyy.MM.dd.HH.mm.ss.fff");
     }
 
     public FloorType GetFloorType()

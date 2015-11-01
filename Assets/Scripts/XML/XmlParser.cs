@@ -129,12 +129,13 @@ public class XmlParser
     /// <summary>
     /// This function is to be used in order to start recording data for an adaptive game session
     /// </summary>
+    /// <param name="candID">Can ID to which we are referring</param>
     /// <param name="startTime">Time at wich the recording has started</param>
-    public void AddStep(string startTime)
+    public void AddStep(int candID, string startTime)
     {
-        currentStep = new AdaptiveData();
-
-        currentStep.startTime = startTime;
+        AdaptiveData a = new AdaptiveData();
+        a.startTime = startTime;
+        adaptiveSteps[candID] = a;
     }
 
     /// <summary>
@@ -145,16 +146,19 @@ public class XmlParser
     /// <param name="y_value">Detected y-value</param>
     /// <param name="force">Detected force</param>
     /// <param name="end_time">Time at which the step has been detected</param>
-    public void SaveStep(float x_value, float y_value, float force, string end_time)
+    public void SaveStep(int canID, float x_value, float y_value, float force, string end_time)
     {
-        currentStep.endTime = end_time;
-        currentStep.x_value = x_value;
-        currentStep.y_value = y_value;
-        currentStep.force = force;
-        currentStep.hasHit = false;
-        currentStep.ducksHit = new List<string>();
+        AdaptiveData a = new AdaptiveData();
+   
+        a.startTime = adaptiveSteps[canID].startTime;
+        a.endTime = end_time;
+        a.x_value = x_value;
+        a.y_value = y_value;
+        a.force = force;
+        a.hasHit = false;
+        a.ducksHit = new List<string>();
 
-        adaptiveSteps.Add(currentStep);
+        adaptiveSteps[canID] = a;
     }
 
     public int GetCounter()
@@ -198,7 +202,7 @@ public class XmlParser
         d.force = adaptiveSteps[canId].force;
         // A duck has been hit
         d.hasHit = true;
-        // Keep track of the previosly hit ducks (if any)
+        // Keep track of the previously hit duck (if any)
         d.ducksHit = new List<string>(adaptiveSteps[canId].ducksHit);
         // Add the new one
         d.ducksHit.Add(name);

@@ -8,6 +8,7 @@ public class GameManager : MonoBehaviour
     [Header("Game Parameters")]
     public float restartTime;
     public bool limitTime = false;
+    public bool updateForceBar;
     public bool isPlaying { get; private set; }
     public bool canReceive { get; private set; }
     public FloorReceiver.FloorType floorType { get; private set; }

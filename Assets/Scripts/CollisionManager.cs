@@ -5,15 +5,11 @@ public class CollisionManager : MonoBehaviour {
 
     [Header("Game Parameters")]
     /// Time to be waited in order to start a new game
-    public int RestartTime = 5;
+    public int RestartTime;
     /// <summary>
     /// Flag indicating whether the can has hit something
     /// </summary>
     private bool isHit = false;
-    /// <summary>
-    /// Flag indicating whether the can has hit a duck object
-    /// </summary>
-    private bool isDuckHit = false;
     /// <summary>
     /// The duck object hit by the can
     /// </summary>
@@ -26,10 +22,6 @@ public class CollisionManager : MonoBehaviour {
     /// Velocity at wich the duck will go under the water level once it is hit
     /// </summary>
     public float sinkingVelocity = 0.1f;
-    /// <summary>
-    /// Can counter
-    /// </summary>
-    private static int c = 0;
     /// <summary>
     /// Can ID
     /// </summary>
@@ -61,11 +53,11 @@ public class CollisionManager : MonoBehaviour {
         // Get GameManager instance
         gameManager = GameManager.instance;
 
+        // Variables inizialization
         doubleMultiplier = 0;
         ducksHit = 0;
         isHit = false;
         canShake = false;
-        canID = -1;
     }
 
     public void Update()
@@ -82,13 +74,6 @@ public class CollisionManager : MonoBehaviour {
     {
         // If something has already been hit, don't do anything
         if (isHit) return;
-
-        // Define can ID
-        if(canID == -1)
-        {
-            canID = c;
-            c++;
-        }
         
         // Is the hit GameObject a Duck?
         if (collision.gameObject.tag == "Duck")
@@ -146,6 +131,7 @@ public class CollisionManager : MonoBehaviour {
         {
             doubleMultiplier = 0;
             ducksHit = 0;
+            isHit = false;
         }
     }
 
@@ -165,11 +151,12 @@ public class CollisionManager : MonoBehaviour {
     private void DisableCan()
     {
         // Is it the last can?
-        if (c == dataManager.canNumber)
+        // If this control was inside Data Manager, the game would end immediatly after that the last can has been thrown.
+        // In this way, the game ends only after the last can hits wether the terrain or the second duck
+        if ((canID + 1) == dataManager.canNumber)
         {
             // Notiy it to the Data Manager
             dataManager.LastCan();
-            c = 0;
         }
 
         // Disable can after n seconds in any case, even if the user didn't hit any duck
@@ -193,7 +180,7 @@ public class CollisionManager : MonoBehaviour {
         yield return new WaitForSeconds(RestartTime);
 
         // Deactivate thrown can
-        gameObject.SetActive(false);
+        SetCanActive(false);
     }
 
     private int count = 1;
@@ -203,5 +190,20 @@ public class CollisionManager : MonoBehaviour {
         duck.transform.rotation *= Quaternion.Euler(0, Time.time * rotationVelocity, 0);
         // ... While it goes under the water level
         duck.transform.localPosition = new Vector3(duck.transform.localPosition.x, duck.transform.localPosition.y - sinkingVelocity * count++, duck.transform.localPosition.z);
+    }
+
+    private void SetID(int ID)
+    {
+        canID = ID;
+    }
+
+    private void SetCanActive(bool value)
+    {
+        // Enable/Disable MeshRenderer compotenent, so that the can will/will not be rendered
+        gameObject.GetComponent<MeshRenderer>().enabled = value;
+        // Enable/Disable box collider
+        gameObject.GetComponent<BoxCollider>().enabled = value;
+        // Enable/Disable gravity
+        gameObject.GetComponent<Rigidbody>().useGravity = value;
     }
 }
