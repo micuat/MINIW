@@ -164,7 +164,6 @@ public class DataManager : MonoBehaviour {
 
     public void IncreaseMultiplier()
     {
-        Debug.Log(globalMultiplier);
         globalMultiplier++;
     }
 

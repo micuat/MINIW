@@ -14,6 +14,7 @@ public class XmlParser
     private Dictionary<int, AdaptiveData> adaptiveSteps;
     private AdaptiveData currentStep;
     private string path;
+    private Object semaphore = new Object();
 
     private struct Data
     {
@@ -131,11 +132,15 @@ public class XmlParser
     /// </summary>
     /// <param name="candID">Can ID to which we are referring</param>
     /// <param name="startTime">Time at wich the recording has started</param>
-    public void AddStep(int candID, string startTime)
+    public void AddStep(int canID, string startTime)
     {
         AdaptiveData a = new AdaptiveData();
         a.startTime = startTime;
-        adaptiveSteps[candID] = a;
+
+        lock (semaphore)
+        {
+            adaptiveSteps[canID] = a; 
+        }
     }
 
     /// <summary>
@@ -149,8 +154,14 @@ public class XmlParser
     public void SaveStep(int canID, float x_value, float y_value, float force, string end_time)
     {
         AdaptiveData a = new AdaptiveData();
-   
-        a.startTime = adaptiveSteps[canID].startTime;
+
+        string start_time;
+        lock (semaphore)
+        {
+            start_time = adaptiveSteps[canID].startTime;
+        }
+
+        a.startTime = start_time;
         a.endTime = end_time;
         a.x_value = x_value;
         a.y_value = y_value;
@@ -158,7 +169,10 @@ public class XmlParser
         a.hasHit = false;
         a.ducksHit = new List<string>();
 
-        adaptiveSteps[canID] = a;
+        lock (semaphore)
+        {
+            adaptiveSteps[canID] = a;
+        }
     }
 
     public int GetCounter()
@@ -194,20 +208,31 @@ public class XmlParser
         // It is necessary to create a new element, and then add it
         AdaptiveData d = new AdaptiveData();
 
+        // Get data regarding the desired canID.
+        // It is essential to use a lock in order to avoid race condition
+        AdaptiveData data;
+        lock (semaphore)
+        {
+            data = adaptiveSteps[canId];
+        }
+
         // Those values needn't to be updated
-        d.startTime = adaptiveSteps[canId].startTime;
-        d.endTime = adaptiveSteps[canId].endTime;
-        d.x_value = adaptiveSteps[canId].x_value;
-        d.y_value = adaptiveSteps[canId].y_value;
-        d.force = adaptiveSteps[canId].force;
+        d.startTime = data.startTime;
+        d.endTime = data.endTime;
+        d.x_value = data.x_value;
+        d.y_value = data.y_value;
+        d.force = data.force;
         // A duck has been hit
         d.hasHit = true;
         // Keep track of the previously hit duck (if any)
-        d.ducksHit = new List<string>(adaptiveSteps[canId].ducksHit);
+        d.ducksHit = new List<string>(data.ducksHit);
         // Add the new one
         d.ducksHit.Add(name);
-        
+
         // Update element in the list
-        adaptiveSteps[canId] = d;
+        lock (semaphore)
+        {
+            adaptiveSteps[canId] = d; 
+        }
     }
 }

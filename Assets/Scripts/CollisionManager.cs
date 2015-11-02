@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Threading;
 
 public class CollisionManager : MonoBehaviour {
 
@@ -9,7 +10,7 @@ public class CollisionManager : MonoBehaviour {
     /// <summary>
     /// Flag indicating whether the can has hit something
     /// </summary>
-    private bool isHit = false;
+    private volatile bool isHit = false;
     /// <summary>
     /// The duck object hit by the can
     /// </summary>
@@ -72,6 +73,7 @@ public class CollisionManager : MonoBehaviour {
 
     void OnCollisionEnter(Collision collision)
     {
+
         // If something has already been hit, don't do anything
         if (isHit) return;
         
@@ -82,9 +84,9 @@ public class CollisionManager : MonoBehaviour {
             AudioSource.PlayClipAtPoint(audioDuck, Camera.main.transform.position);
 
             // A duck has been hit
-            ducksHit++;
+            Interlocked.Increment(ref ducksHit);
             // Increase double multiplier
-            doubleMultiplier++;
+            Interlocked.Increment(ref doubleMultiplier);
 
             // Has the can hit the second duck?
             if(ducksHit == 2)
@@ -109,7 +111,7 @@ public class CollisionManager : MonoBehaviour {
             // Update ducks number
             dataManager.DuckHit();
         }
-        else if(collision.gameObject.tag == "Terrain")
+        else
         {
             // Disable the can
             isHit = true;
@@ -131,7 +133,6 @@ public class CollisionManager : MonoBehaviour {
         {
             doubleMultiplier = 0;
             ducksHit = 0;
-            isHit = false;
         }
     }
 
@@ -181,6 +182,9 @@ public class CollisionManager : MonoBehaviour {
 
         // Deactivate thrown can
         SetCanActive(false);
+
+        // Reset flag
+        isHit = false;
     }
 
     private int count = 1;

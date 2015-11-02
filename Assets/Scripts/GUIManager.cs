@@ -105,7 +105,6 @@ public class GUIManager : MonoBehaviour
 
     public void ShowForceBar(Vector3 canPosition, float force)
     {
-        Debug.Log(canPosition);
         canPosition.y = ForceBar.rectTransform.position.y;
         canPosition.z = ForceBar.rectTransform.position.z;
         ForceBar.rectTransform.position = canPosition;
