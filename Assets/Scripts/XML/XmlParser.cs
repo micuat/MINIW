@@ -11,7 +11,7 @@ public class XmlParser
     private XDocument doc;
     private XElement currentSession;
     private List<Data> steps;
-    private List<AdaptiveData> adaptiveSteps;
+    private Dictionary<int, AdaptiveData> adaptiveSteps;
     private AdaptiveData currentStep;
     private string path;
 
@@ -53,7 +53,7 @@ public class XmlParser
         doc.Save(path);
 
         steps = new List<Data>();
-        adaptiveSteps = new List<AdaptiveData>();
+        adaptiveSteps = new Dictionary<int, AdaptiveData>();
         this.path = path;
     }
 
@@ -89,13 +89,13 @@ public class XmlParser
         currentSession.Add(new XAttribute("end_time", end_time));
         currentSession.Add(
             from c in adaptiveSteps
-            select new XElement("Step", new XAttribute("start_time", c.startTime),
-                                        new XAttribute("end_time", c.endTime),
-                                        new XAttribute("x_value", c.x_value),
-                                        new XAttribute("y_value", c.y_value),
-                                        new XAttribute("force", c.force),
-                                        new XAttribute("has_hit", c.hasHit),
-                                        from d in c.ducksHit
+            select new XElement("Step", new XAttribute("start_time", c.Value.startTime),
+                                        new XAttribute("end_time", c.Value.endTime),
+                                        new XAttribute("x_value", c.Value.x_value),
+                                        new XAttribute("y_value", c.Value.y_value),
+                                        new XAttribute("force", c.Value.force),
+                                        new XAttribute("has_hit", c.Value.hasHit),
+                                        from d in c.Value.ducksHit
                                         select new XElement("Duck", new XAttribute("name", d)))
         );
 

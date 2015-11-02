@@ -258,7 +258,7 @@ public class DataManager : MonoBehaviour {
 
     public int GetCurrentCanID()
     {
-        return (canNumber - sessionCanNumber - 1);
+        return (canNumber - sessionCanNumber);
     }
 
     public void ResetDucks()

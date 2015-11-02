@@ -132,7 +132,7 @@ public class FloorReceiver : MonoBehaviour
                         // It is essential to remap the x-axes value received since we want it to be in screen coordinate
                         guiManager.EnableForceBar(true, UtilityClass.Remap((float)message[2], lowestXValueNIW, highForceValue, dataManager.leftMostUIBorder, dataManager.rightMostUIBorder));
                         // Record detected step in the xml file
-                        dataManager.AddStep(dataManager.GetCurrentCanID() + 1, UtilityClass.GetTimestamp(DateTime.Now));
+                        dataManager.AddStep(dataManager.GetCurrentCanID(), UtilityClass.GetTimestamp(DateTime.Now));
 
                         spawned = false;
                     }
@@ -167,7 +167,7 @@ public class FloorReceiver : MonoBehaviour
                         if (ThrowCan((float)message[2]))
                         {
                             // Record detected step in the xml file
-                            dataManager.SaveStep(dataManager.GetCurrentCanID(), (float)message[2], (float)message[3], (float)message[4], UtilityClass.GetTimestamp(DateTime.Now));
+                            dataManager.SaveStep(dataManager.GetCurrentCanID() - 1, (float)message[2], (float)message[3], (float)message[4], UtilityClass.GetTimestamp(DateTime.Now));
 
                             // Can has be spawned. The player has to lift his/her foot in order to be able to throw
                             // another can
