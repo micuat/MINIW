@@ -34,6 +34,12 @@ public class GameManager : MonoBehaviour
         isPlaying = b;
     }
 
+    public void PlayStandardMode(bool value)
+    {
+        updateForceBar = value;
+        guiManager.UpdateForceBarSprite();
+    }
+
     public void SetFloorType(FloorReceiver.FloorType floorType)
     {
         this.floorType = floorType;

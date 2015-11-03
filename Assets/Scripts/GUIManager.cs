@@ -29,6 +29,7 @@ public class GUIManager : MonoBehaviour
 
     [HideInInspector]
     public GUIState guiState;
+    private string originalBottomText;
 
     private DataManager dataManager;
     private GameManager gameManager;
@@ -45,8 +46,29 @@ public class GUIManager : MonoBehaviour
         gameManager = GameManager.instance;
 
         ShowGUI(GUIState.MainMenu);
+        originalBottomText = bottomText.text;
+        bottomText.text = originalBottomText + " Standard Mode";
 
-        // Inizialize sprite
+        UpdateForceBarSprite();
+    }
+
+    private void Update()
+    {
+        if(guiState == GUIState.MainMenu && Input.GetKeyDown(KeyCode.Alpha1))
+        {
+            bottomText.text = originalBottomText + " Standard Mode";
+            gameManager.PlayStandardMode(true);
+        }
+        else if (guiState == GUIState.MainMenu && Input.GetKeyDown(KeyCode.Alpha2))
+        {
+            bottomText.text = originalBottomText + " Extreme Mode";
+            gameManager.PlayStandardMode(false);
+        }
+    }
+
+    public void UpdateForceBarSprite()
+    {
+        // Change sprite
         ForceBar.GetComponent<Image>().sprite = gameManager.updateForceBar ? adaptiveForceBarImage : staticForceBarImage;
     }
 

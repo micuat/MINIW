@@ -240,6 +240,8 @@ public class DataManager : MonoBehaviour {
         c.transform.localPosition = startPosition;
         // Reset its rotation
         c.transform.localRotation = Quaternion.identity;
+        // Reset its velocity
+        c.GetComponent<Rigidbody>().velocity = 0;
         // Activate can
         c.SendMessage("SetCanActive", true);
         // Update can counter
