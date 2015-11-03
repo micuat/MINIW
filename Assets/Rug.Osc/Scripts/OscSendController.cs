@@ -44,7 +44,7 @@ public class OscSendController : MonoBehaviour {
 		Debug.Log ("Sender Connected"); 
 	}
 	
-	private void OnApplicationQuit() {
+	private void OnDestroy() {
 		Disconnect (); 
 	}
 	

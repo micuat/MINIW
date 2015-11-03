@@ -73,7 +73,7 @@ public class FloorReceiver : MonoBehaviour
             callbacks[new KeyValuePair<OscReceiveController, string>(floorReceiverController, "/niw/client/aggregator/floorcontact")] = FloorContact;
         }
 
-        OscSendController floorSenderController = sender.GetComponent<OscSendController>();
+        floorSenderController = sender.GetComponent<OscSendController>();
         if(floorSenderController == null)
         {
             Debug.LogError(string.Format("The GameObject with the name '{0}' does not contain a OscSendController component", sender.name));
