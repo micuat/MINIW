@@ -87,4 +87,9 @@ public class GameManager : MonoBehaviour
         guiManager.ShowBottomLine();
         canReceive = true;
     }
+
+    public string GetModeGame()
+    {
+        return updateForceBar ? "Standard" : "Extreme";
+    }
 }

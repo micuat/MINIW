@@ -58,9 +58,9 @@ public class XmlParser
         this.path = path;
     }
 
-    public void AddSession(string start_time)
+    public void AddSession(string start_time, string mode)
     {
-        currentSession = new XElement("Session", new XAttribute("ID", id++), new XAttribute("start_time", start_time));
+        currentSession = new XElement("Session", new XAttribute("Mode", mode), new XAttribute("ID", id++), new XAttribute("start_time", start_time));
     }
 
     public void SaveSession(string end_time)

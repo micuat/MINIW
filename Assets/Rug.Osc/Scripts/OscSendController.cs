@@ -18,8 +18,6 @@ public class OscSendController : MonoBehaviour {
 
 	public OscSender Sender { get { return m_Sender; } }
 
-
-
 	public OscSendController() { }
 
 	void Awake () { 
@@ -45,19 +43,8 @@ public class OscSendController : MonoBehaviour {
 		// We are now connected
 		Debug.Log ("Sender Connected"); 
 	}
-
-	// Use this for initialization
-	void Start () {
-
-	}
 	
-	// Update is called once per frame
-	void Update () {
-
-	}	
-	
-	// OnDestroy is called when the object is destroyed
-	public void OnDestroy () {
+	private void OnApplicationQuit() {
 		Disconnect (); 
 	}
 	

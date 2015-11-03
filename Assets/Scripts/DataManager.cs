@@ -199,6 +199,9 @@ public class DataManager : MonoBehaviour {
             parser.SaveAdaptiveSession(UtilityClass.GetTimestamp(DateTime.Now));
         }
 
+        // Notify server
+        GameObject.FindGameObjectWithTag("NIW").GetComponent<FloorReceiver>().SendMessage("NotifyServer", "end");
+
         sessionDucksInTheGame = ducksInTheGame;
         sessionGameTime = gameTime;
         sessionCanNumber = canNumber;
@@ -241,7 +244,7 @@ public class DataManager : MonoBehaviour {
         // Reset its rotation
         c.transform.localRotation = Quaternion.identity;
         // Reset its velocity
-        c.GetComponent<Rigidbody>().velocity = 0;
+        c.GetComponent<Rigidbody>().velocity = Vector3.zero;
         // Activate can
         c.SendMessage("SetCanActive", true);
         // Update can counter
@@ -317,9 +320,9 @@ public class DataManager : MonoBehaviour {
         parser.SaveStep(canID, x_value, y_value, force, end_time);
     }
 
-    public void AddSession(string start_time)
+    public void AddSession(string start_time, string mode)
     {
-        parser.AddSession(start_time);
+        parser.AddSession(start_time, mode);
     }
 
     public void RecordDuckHit(int id)

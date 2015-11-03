@@ -16,6 +16,9 @@ public class FloorReceiver : MonoBehaviour
     public float highestForceValueNIW;
     public GameObject receiver;
     private OscReceiveController floorReceiverController;
+    public GameObject sender;
+    private OscSendController floorSenderController;
+    private string serverAddress;
     // Dictionary storing all the callbacks used with the Vicon and Floor OscReceivers
     private Dictionary<KeyValuePair<OscReceiveController, string>, OscMessageEvent> callbacks;
 
@@ -70,7 +73,15 @@ public class FloorReceiver : MonoBehaviour
             callbacks[new KeyValuePair<OscReceiveController, string>(floorReceiverController, "/niw/client/aggregator/floorcontact")] = FloorContact;
         }
 
+        OscSendController floorSenderController = sender.GetComponent<OscSendController>();
+        if(floorSenderController == null)
+        {
+            Debug.LogError(string.Format("The GameObject with the name '{0}' does not contain a OscSendController component", sender.name));
+            return;
+        }
+
         floorType = type;
+        serverAddress = "/niw/game/status";
     }
 
     private bool GetReceiveController(GameObject g, out OscReceiveController r)
@@ -152,7 +163,9 @@ public class FloorReceiver : MonoBehaviour
                         // Start playing
                         gameManager.SetPlayingStatus(true);
                         // Add a new session in the xml file
-                        dataManager.AddSession(UtilityClass.GetTimestamp(DateTime.Now));
+                        dataManager.AddSession(UtilityClass.GetTimestamp(DateTime.Now), gameManager.GetModeGame());
+                        // Notify server
+                        Send(new OscMessage(serverAddress, "start"));
                     }
                     // If the game is in Void mode and the player is playing ...
                     else if (guiManager.guiState == GUIManager.GUIState.Void && gameManager.isPlaying)
@@ -304,7 +317,9 @@ public class FloorReceiver : MonoBehaviour
                 // Start playing
                 gameManager.SetPlayingStatus(true);
                 // Add a new session in the xml file
-                dataManager.AddSession(UtilityClass.GetTimestamp(DateTime.Now));
+                dataManager.AddSession(UtilityClass.GetTimestamp(DateTime.Now), gameManager.GetModeGame());
+                // Notify server
+                Send(new OscMessage(serverAddress, "start"));
             } 
         }
     }
@@ -406,10 +421,28 @@ public class FloorReceiver : MonoBehaviour
         {
             e.Key.Key.Manager.Detach(e.Key.Value, e.Value);
         }
+
+        // Notify server
+        NotifyServer("end");
     }
 
     public FloorType GetFloorType()
     {
         return floorType;
+    }
+
+    private void Send(OscMessage msg)
+    {
+        if (floorSenderController != null)
+        {
+            // Send the message
+            floorSenderController.Sender.Send(msg);
+            Debug.Log(msg);
+        }
+    }
+
+    private void NotifyServer(string status)
+    {
+        Send(new OscMessage(serverAddress, status));
     }
 }
