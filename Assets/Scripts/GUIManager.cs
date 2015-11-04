@@ -51,7 +51,7 @@ public class GUIManager : MonoBehaviour
 
         ShowGUI(GUIState.MainMenu);
         originalBottomText = bottomText.text;
-        bottomText.text = originalBottomText + " Standard Mode";
+        bottomText.text = originalBottomText + "\nStandard Mode";
         SetHitPointsActive(false);
 
         UpdateForceBarSprite();
@@ -61,29 +61,42 @@ public class GUIManager : MonoBehaviour
     {
         if(guiState == GUIState.MainMenu && Input.GetKeyDown(KeyCode.Alpha1))
         {
-            bottomText.text = originalBottomText + " Standard Mode";
+            bottomText.text = originalBottomText + "\nStandard Mode";
             gameManager.PlayStandardMode(true);
         }
         else if (guiState == GUIState.MainMenu && Input.GetKeyDown(KeyCode.Alpha2))
         {
-            bottomText.text = originalBottomText + " Extreme Mode";
+            bottomText.text = originalBottomText + "\nExtreme Mode";
             gameManager.PlayStandardMode(false);
         }
+    }
 
-        if(fadePoints)
+    private void FixedUpdate()
+    {
+        if (fadePoints)
         {
-            Color color = hitPointsText.color;
-            color.a -= 0.05f;
-            hitPointsText.color = color;
-
-            if(hitPointsText.color.a <= 0)
+            UpdateAlfa();
+            if (hitPointsText.color.a <= 0)
             {
                 SetHitPointsActive(false);
-                color = hitPointsText.color;
-                color.a = 255;
-                hitPointsText.color = color;
+                UpdateAlfa(true);
             }
         }
+    }
+
+    private void UpdateAlfa(bool reset = false)
+    {
+        Color color = hitPointsText.color;
+        if (reset)
+        {
+            color.a = 1;
+        }
+
+        else
+        {
+            color.a -= 0.0125f;
+        }
+        hitPointsText.color = color;
     }
 
     public void SetHitPointsActive(bool value)
@@ -147,6 +160,7 @@ public class GUIManager : MonoBehaviour
         v.y = v.y * 1.2F;
         hitPointsText.rectTransform.position = v;
         hitPointsText.text = "+" + points.ToString();
+        UpdateAlfa(true);
         SetHitPointsActive(true);
     }
 
