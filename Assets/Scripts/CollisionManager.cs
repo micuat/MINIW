@@ -107,7 +107,7 @@ public class CollisionManager : MonoBehaviour {
             StartCoroutine(EliminateDuck(collision.gameObject));
             // Update score
             bool b = ducksHit == 2;
-            dataManager.AddToScore(b);
+            dataManager.AddToScore(b, collision.gameObject);
             // Update ducks number
             dataManager.DuckHit();
         }

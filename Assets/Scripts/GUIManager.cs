@@ -27,6 +27,10 @@ public class GUIManager : MonoBehaviour
     public Sprite adaptiveForceBarImage;
     public Sprite staticForceBarImage;
 
+    [Header("Various")]
+    public Text hitPointsText;
+    private bool fadePoints;
+
     [HideInInspector]
     public GUIState guiState;
     private string originalBottomText;
@@ -48,6 +52,7 @@ public class GUIManager : MonoBehaviour
         ShowGUI(GUIState.MainMenu);
         originalBottomText = bottomText.text;
         bottomText.text = originalBottomText + " Standard Mode";
+        SetHitPointsActive(false);
 
         UpdateForceBarSprite();
     }
@@ -64,6 +69,27 @@ public class GUIManager : MonoBehaviour
             bottomText.text = originalBottomText + " Extreme Mode";
             gameManager.PlayStandardMode(false);
         }
+
+        if(fadePoints)
+        {
+            Color color = hitPointsText.color;
+            color.a -= 0.05f;
+            hitPointsText.color = color;
+
+            if(hitPointsText.color.a <= 0)
+            {
+                SetHitPointsActive(false);
+                color = hitPointsText.color;
+                color.a = 255;
+                hitPointsText.color = color;
+            }
+        }
+    }
+
+    public void SetHitPointsActive(bool value)
+    {
+        hitPointsText.enabled = value;
+        fadePoints = value;
     }
 
     public void UpdateForceBarSprite()
@@ -113,6 +139,15 @@ public class GUIManager : MonoBehaviour
     public void SetInGameScore(int score)
     {
         inGameScoreText.text = score.ToString();
+    }
+
+    public void ShowPointsOnDuck(float points, GameObject hitDuck)
+    {
+        Vector3 v = Camera.main.WorldToScreenPoint(hitDuck.transform.position);
+        v.y = v.y * 1.2F;
+        hitPointsText.rectTransform.position = v;
+        hitPointsText.text = "+" + points.ToString();
+        SetHitPointsActive(true);
     }
 
     public void SetInGameCanNumber(int s)

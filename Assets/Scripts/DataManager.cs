@@ -143,18 +143,19 @@ public class DataManager : MonoBehaviour {
         }
     }
 
-    public void AddToScore(bool doubleHit = false)
+    public void AddToScore(bool doubleHit, GameObject hitDuck = null)
     {
-        if (doubleHit)
-        {
-            score += (duckPoints * globalMultiplier)*2;
-        }
-        else
-        {
-            score += (duckPoints * globalMultiplier);
-        }
+        float f = 0;
+
+        f = doubleHit ? (duckPoints * globalMultiplier) * 2 : (duckPoints * globalMultiplier);
+        score += f;
 
         guiManager.SetInGameScore(Mathf.RoundToInt(score));
+
+        if(hitDuck != null)
+        {
+            guiManager.ShowPointsOnDuck(f, hitDuck);
+        }
     }
 
     public void ResetMultiplier()
