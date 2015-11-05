@@ -40,6 +40,10 @@ public class FloorReceiver : MonoBehaviour
     private bool spawned = false;
     private float lowForceValue = 2;
     private float highForceValue = 7;
+    private Vector2 oldPosition;
+    private float oldForce;
+    private double movement_accumulator;
+    private float force_accumulator;
 
     private GameManager gameManager;
     private DataManager dataManager;
@@ -141,9 +145,15 @@ public class FloorReceiver : MonoBehaviour
                     {
                         // ... Show force bar.
                         // It is essential to remap the x-axes value received since we want it to be in screen coordinate
-                        guiManager.EnableForceBar(true, UtilityClass.Remap((float)message[2], lowestXValueNIW, highForceValue, dataManager.leftMostUIBorder, dataManager.rightMostUIBorder));
+                        guiManager.EnableForceBar(true, Utility.UtilityClass.Remap((float)message[2], lowestXValueNIW, highForceValue, dataManager.leftMostUIBorder, dataManager.rightMostUIBorder));
                         // Record detected step in the xml file
-                        dataManager.AddStep(dataManager.GetCurrentCanID(), UtilityClass.GetTimestamp(DateTime.Now));
+                        dataManager.AddStep(dataManager.GetCurrentCanID(), Utility.UtilityClass.GetTimestamp(DateTime.Now), (float)message[2], (float)message[3]);
+                        // Save position
+                        oldPosition = new Vector2((float)message[2], (float)message[3]);
+                        // Reset data
+                        movement_accumulator = 0;
+                        force_accumulator = 0;
+                        oldForce = 0;
 
                         spawned = false;
                     }
@@ -153,7 +163,9 @@ public class FloorReceiver : MonoBehaviour
                     if (guiManager.guiState == GUIManager.GUIState.Void && gameManager.isPlaying && !spawned)
                     {
                         // Update force bar
-                        guiManager.UpdateForceBar(UtilityClass.Remap((float)message[2], lowestXValueNIW, highestXValueNIW, dataManager.leftMostUIBorder, dataManager.rightMostUIBorder), (float)message[4]);
+                        guiManager.UpdateForceBar(Utility.UtilityClass.Remap((float)message[2], lowestXValueNIW, highestXValueNIW, dataManager.leftMostUIBorder, dataManager.rightMostUIBorder), (float)message[4]);
+                        // Update data
+                        UpdateMovementAndForce((float)message[2], (float)message[3], (float)message[4]);
                     }
                     break;
                 case "remove":
@@ -163,7 +175,7 @@ public class FloorReceiver : MonoBehaviour
                         // Start playing
                         gameManager.SetPlayingStatus(true);
                         // Add a new session in the xml file
-                        dataManager.AddSession(UtilityClass.GetTimestamp(DateTime.Now), gameManager.GetModeGame());
+                        dataManager.AddSession(Utility.UtilityClass.GetTimestamp(DateTime.Now), gameManager.GetModeGame());
                         // Notify server
                         Send(new OscMessage(serverAddress, "start"));
                     }
@@ -171,7 +183,7 @@ public class FloorReceiver : MonoBehaviour
                     else if (guiManager.guiState == GUIManager.GUIState.Void && gameManager.isPlaying)
                     {
                         // Update force bar
-                        guiManager.UpdateForceBar(UtilityClass.Remap((float)message[2], lowestXValueNIW, highestXValueNIW, dataManager.leftMostUIBorder, dataManager.rightMostUIBorder), (float)message[4]);
+                        guiManager.UpdateForceBar(Utility.UtilityClass.Remap((float)message[2], lowestXValueNIW, highestXValueNIW, dataManager.leftMostUIBorder, dataManager.rightMostUIBorder), (float)message[4]);
 
                         // Define parameters to be used to throw the can
                         DefineCanParameters(0, 0.5f, (float)message[4], lowestForceValueNIW, highestForceValueNIW, lowForceValue, highForceValue);
@@ -179,8 +191,11 @@ public class FloorReceiver : MonoBehaviour
                         // Instanciate and throw the can using the defined parameters
                         if (ThrowCan((float)message[2]))
                         {
+                            // Update data before saving it
+                            UpdateMovementAndForce((float)message[2], (float)message[3], (float)message[4]);
+
                             // Record detected step in the xml file
-                            dataManager.SaveStep(dataManager.GetCurrentCanID() - 1, (float)message[2], (float)message[3], (float)message[4], UtilityClass.GetTimestamp(DateTime.Now));
+                            dataManager.SaveStep(dataManager.GetCurrentCanID() - 1, (float)message[2], (float)message[3], (float)message[4], movement_accumulator, force_accumulator, Utility.UtilityClass.GetTimestamp(DateTime.Now));
 
                             // Can has be spawned. The player has to lift his/her foot in order to be able to throw
                             // another can
@@ -190,6 +205,15 @@ public class FloorReceiver : MonoBehaviour
                     break;
             }
         }
+    }
+
+    private void UpdateMovementAndForce(float x, float y, float force)
+    {
+        movement_accumulator += Vector2.Distance(new Vector2(x, y), oldPosition);
+        force_accumulator += Mathf.Abs(force - oldForce);
+
+        oldForce = force;
+        oldPosition = new Vector2(x, y);
     }
 
     private void DefineCanParameters(float xforce, float yforce, float zforce)
@@ -203,7 +227,7 @@ public class FloorReceiver : MonoBehaviour
     {
         xForce = xforce;
         yForce = yforce;
-        zForce = UtilityClass.Remap(zforce, from_old, to_old, from_new, to_new);
+        zForce = Utility.UtilityClass.Remap(zforce, from_old, to_old, from_new, to_new);
 
         // zForce can be greater than highForceValue if we get an fsr value higher than furtherThreshold
         if (zForce > to_new)
@@ -317,7 +341,7 @@ public class FloorReceiver : MonoBehaviour
                 // Start playing
                 gameManager.SetPlayingStatus(true);
                 // Add a new session in the xml file
-                dataManager.AddSession(UtilityClass.GetTimestamp(DateTime.Now), gameManager.GetModeGame());
+                dataManager.AddSession(Utility.UtilityClass.GetTimestamp(DateTime.Now), gameManager.GetModeGame());
                 // Notify server
                 Send(new OscMessage(serverAddress, "start"));
             } 
@@ -331,7 +355,7 @@ public class FloorReceiver : MonoBehaviour
             // Get camera position
             var pos = GameObject.FindGameObjectWithTag("MainCamera").transform.localPosition;
             // Remap x value coming from the floor
-            pos.x = UtilityClass.Remap(x_value, lowestXValueNIW, highestXValueNIW, dataManager.GetLeftLimitXPoint(), dataManager.GetRightLimitXPoint());
+            pos.x = Utility.UtilityClass.Remap(x_value, lowestXValueNIW, highestXValueNIW, dataManager.GetLeftLimitXPoint(), dataManager.GetRightLimitXPoint());
             // Get a can
             GameObject c = dataManager.UseCan(pos);
 

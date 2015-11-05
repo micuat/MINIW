@@ -188,16 +188,16 @@ public class DataManager : MonoBehaviour {
     {
         lastCan = true;
     }
-
+    
     private void ResetParameters()
     {
         if (gameManager.floorType == FloorReceiver.FloorType.Normal)
         {
-            parser.SaveSession(UtilityClass.GetTimestamp(DateTime.Now));
+            parser.SaveSession(Utility.UtilityClass.GetTimestamp(DateTime.Now));
         }
         else
         {
-            parser.SaveAdaptiveSession(UtilityClass.GetTimestamp(DateTime.Now));
+            parser.SaveAdaptiveSession(Utility.UtilityClass.GetTimestamp(DateTime.Now));
         }
 
         // Notify server
@@ -306,9 +306,9 @@ public class DataManager : MonoBehaviour {
         return sessionCanNumber == 0 ? true : false;
     }
 
-    public void AddStep(int canID, string start_time)
+    public void AddStep(int canID, string start_time, float x_value_start, float y_value_start)
     {
-        parser.AddStep(canID, start_time);
+        parser.AddStep(canID, start_time, x_value_start, y_value_start);
     }
 
     public void AddStep(float x_value, float y_value, int tot, float force)
@@ -316,9 +316,9 @@ public class DataManager : MonoBehaviour {
         parser.AddStep(x_value, y_value, tot, force);
     }
 
-    public void SaveStep(int canID, float x_value, float y_value, float force, string end_time)
+    public void SaveStep(int canID, float x_value, float y_value, float force, double movement_accumulator, float force_accumulator, string end_time)
     {
-        parser.SaveStep(canID, x_value, y_value, force, end_time);
+        parser.SaveStep(canID, x_value, y_value, force, movement_accumulator, force_accumulator, end_time);
     }
 
     public void AddSession(string start_time, string mode)
