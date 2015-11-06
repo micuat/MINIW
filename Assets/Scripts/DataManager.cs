@@ -306,9 +306,9 @@ public class DataManager : MonoBehaviour {
         return sessionCanNumber == 0 ? true : false;
     }
 
-    public void AddStep(int canID, string start_time, float x_value_start, float y_value_start)
+    public void AddStep(int canID, string start_time, float x_value_start, float y_value_start, string preset)
     {
-        parser.AddStep(canID, start_time, x_value_start, y_value_start);
+        parser.AddStep(canID, start_time, x_value_start, y_value_start, preset);
     }
 
     public void AddStep(float x_value, float y_value, int tot, float force)

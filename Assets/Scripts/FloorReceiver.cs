@@ -147,7 +147,7 @@ public class FloorReceiver : MonoBehaviour
                         // It is essential to remap the x-axes value received since we want it to be in screen coordinate
                         guiManager.EnableForceBar(true, Utility.UtilityClass.Remap((float)message[2], lowestXValueNIW, highForceValue, dataManager.leftMostUIBorder, dataManager.rightMostUIBorder));
                         // Record detected step in the xml file
-                        dataManager.AddStep(dataManager.GetCurrentCanID(), Utility.UtilityClass.GetTimestamp(DateTime.Now), (float)message[2], (float)message[3]);
+                        dataManager.AddStep(dataManager.GetCurrentCanID(), Utility.UtilityClass.GetTimestamp(DateTime.Now), (float)message[2], (float)message[3], (string)message[5]);
                         // Save position
                         oldPosition = new Vector2((float)message[2], (float)message[3]);
                         // Reset data

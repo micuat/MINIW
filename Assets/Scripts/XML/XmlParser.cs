@@ -107,34 +107,47 @@ public class XmlParser
     /// <param name="end_time">Session end time</param>
     public void SaveAdaptiveSession(string end_time)
     {
-        // Load xml file
-        doc = XDocument.Load(path);
+        try
+        {
+            // Load xml file
+            doc = XDocument.Load(path);
 
-        // Save end time
-        currentSession.Add(new XAttribute("end_time", end_time));
-        // Save all the recorded steps
-        currentSession.Add(
-            from c in adaptiveSteps
-            select new XElement("Step", new XAttribute("start_time", c.Value.startTime),
-                                        new XAttribute("end_time", c.Value.endTime),
-                                        new XAttribute("x_value_start", c.Value.startPoint.x),
-                                        new XAttribute("y_value_start", c.Value.startPoint.y),
-                                        new XAttribute("x_value_end", c.Value.endPoint.x),
-                                        new XAttribute("y_value_end", c.Value.endPoint.y),
-                                        new XAttribute("distance", c.Value.distanceTravelled),
-                                        new XAttribute("force", c.Value.force),
-                                        new XAttribute("force_variation", c.Value.forceAccumulated),
-                                        new XAttribute("has_hit", c.Value.hasHit),
-                                        from d in c.Value.ducksHit
-                                        select new XElement("Duck", new XAttribute("name", d)))
-        );
+            // Save end time
+            currentSession.Add(new XAttribute("end_time", end_time));
+            // Save all the recorded steps
+            currentSession.Add(
+                from c in adaptiveSteps
+                select new XElement("Step", new XAttribute("start_time", c.Value.startTime),
+                                            new XAttribute("end_time", c.Value.endTime),
+                                            new XAttribute("preset", c.Value.preset),
+                                            new XAttribute("x_value_start", c.Value.startPoint.x),
+                                            new XAttribute("y_value_start", c.Value.startPoint.y),
+                                            new XAttribute("x_value_end", c.Value.endPoint.x),
+                                            new XAttribute("y_value_end", c.Value.endPoint.y),
+                                            new XAttribute("distance", c.Value.distanceTravelled),
+                                            new XAttribute("force", c.Value.force),
+                                            new XAttribute("force_variation", c.Value.forceAccumulated),
+                                            new XAttribute("has_hit", c.Value.hasHit),
+                                            from d in c.Value.ducksHit
+                                            select new XElement("Duck", new XAttribute("name", d)))
+            );
 
-        // Add session at the bottom of the xml file
-        doc.Descendants("Data").First().Add(currentSession);
-        // Save file
-        doc.Save(path);
-        // Clear collection
-        adaptiveSteps.Clear();
+            // Add session at the bottom of the xml file
+            doc.Descendants("Data").First().Add(currentSession);
+            // Save file
+            doc.Save(path);
+            // Clear collection
+            adaptiveSteps.Clear();
+        }
+        catch (System.Exception)
+        {
+            // Notify error
+            Debug.Log("Parser exception");
+            // Save file
+            doc.Save(path);
+            // Clear collection
+            adaptiveSteps.Clear();
+        }
     }
 
     /// <summary>
@@ -165,11 +178,12 @@ public class XmlParser
     /// </summary>
     /// <param name="candID">Can ID to which we are referring</param>
     /// <param name="startTime">Time at wich the recording has started</param>
-    public void AddStep(int canID, string start_time, float x_value_start, float y_value_start)
+    public void AddStep(int canID, string start_time, float x_value_start, float y_value_start, string preset)
     {
         Utility.AdaptiveData a = new Utility.AdaptiveData();
         a.startTime = start_time;
         a.startPoint = new Vector2(x_value_start, y_value_start);
+        a.preset = preset;
 
         lock (semaphore)
         {

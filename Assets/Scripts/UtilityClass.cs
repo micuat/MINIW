@@ -29,6 +29,7 @@ namespace Utility
     {
         public string startTime;
         public string endTime;
+        public string preset;
         public Vector2 startPoint;
         public Vector2 endPoint;
         public double distanceTravelled;
