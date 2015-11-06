@@ -89,7 +89,7 @@ public class GUIManager : MonoBehaviour
             }
         }
 
-        if(fadeForceBar && ForceBar.color.a <= 0)
+        if(fadeForceBar && ForceBar.color.a > 0)
         {
             UpdateAlfaForceBar();
         }
@@ -120,7 +120,7 @@ public class GUIManager : MonoBehaviour
 
         else
         {
-            color.a -= 0.0125f;
+            color.a -= 0.025f;
         }
         ForceBar.color = color;
     }
