@@ -30,6 +30,7 @@ public class GUIManager : MonoBehaviour
     [Header("Various")]
     public Text hitPointsText;
     private bool fadePoints;
+    private bool fadeForceBar;
 
     [HideInInspector]
     public GUIState guiState;
@@ -71,6 +72,11 @@ public class GUIManager : MonoBehaviour
         }
     }
 
+    public void FadeForceBar(bool value)
+    {
+        fadeForceBar = value;
+    }
+
     private void FixedUpdate()
     {
         if (fadePoints)
@@ -81,6 +87,11 @@ public class GUIManager : MonoBehaviour
                 SetHitPointsActive(false);
                 UpdateAlfa(true);
             }
+        }
+
+        if(fadeForceBar && ForceBar.color.a <= 0)
+        {
+            UpdateAlfaForceBar();
         }
     }
 
@@ -97,6 +108,21 @@ public class GUIManager : MonoBehaviour
             color.a -= 0.0125f;
         }
         hitPointsText.color = color;
+    }
+
+    private void UpdateAlfaForceBar(bool reset = false)
+    {
+        Color color = ForceBar.color;
+        if (reset)
+        {
+            color.a = 1;
+        }
+
+        else
+        {
+            color.a -= 0.0125f;
+        }
+        ForceBar.color = color;
     }
 
     public void SetHitPointsActive(bool value)
@@ -189,6 +215,9 @@ public class GUIManager : MonoBehaviour
         ForceBar.enabled = value;
         // Reset its value
         ForceBar.GetComponent<Image>().fillAmount = 0;
+        // Reset alpha value
+        fadeForceBar = false;
+        UpdateAlfaForceBar(true);
 
         // If the bar has been enabling ...
         if (value)

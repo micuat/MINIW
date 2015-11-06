@@ -197,6 +197,9 @@ public class FloorReceiver : MonoBehaviour
                             // Record detected step in the xml file
                             dataManager.SaveStep(dataManager.GetCurrentCanID() - 1, (float)message[2], (float)message[3], (float)message[4], movement_accumulator, force_accumulator, Utility.UtilityClass.GetTimestamp(DateTime.Now));
 
+                            // Fade force bar
+                            guiManager.FadeForceBar(true);
+
                             // Can has be spawned. The player has to lift his/her foot in order to be able to throw
                             // another can
                             spawned = true; 
