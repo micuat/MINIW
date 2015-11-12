@@ -4,7 +4,7 @@ using System.Xml.Linq;
 using System.Linq;
 using UnityEngine;
 
-public class XmlParser
+public class XmlParser : MonoBehaviour
 {
     /// <summary>
     /// Global Session ID
@@ -139,10 +139,10 @@ public class XmlParser
             // Clear collection
             adaptiveSteps.Clear();
         }
-        catch (System.Exception)
+        catch (System.Exception e)
         {
             // Notify error
-            Debug.Log("Parser exception");
+            Debug.Log("Parser exception: " + e.ToString());
             // Save file
             doc.Save(path);
             // Clear collection
@@ -169,7 +169,7 @@ public class XmlParser
 
         lock (semaphore)
         {
-            steps.Add(d); 
+            steps.Add(d);
         }
     }
 
@@ -184,6 +184,13 @@ public class XmlParser
         a.startTime = start_time;
         a.startPoint = new Vector2(x_value_start, y_value_start);
         a.preset = preset;
+        a.endTime = "";
+        a.endPoint = Vector2.zero;
+        a.distanceTravelled = 0;
+        a.force = 0;
+        a.forceAccumulated = 0;
+        a.hasHit = false;
+        a.ducksHit = new List<string>();
 
         lock (semaphore)
         {
@@ -205,14 +212,18 @@ public class XmlParser
     public void SaveStep(int canID, float x_value, float y_value, float force, double movement_accumulator, float force_accumulator, string end_time)
     {
         Utility.AdaptiveData a = new Utility.AdaptiveData();
-        
+
         Utility.AdaptiveData data;
         lock (semaphore)
         {
             data = adaptiveSteps[canID];
         }
 
-        a = data;
+        // a = data;
+        a.startTime = data.startTime; ;
+        a.startPoint = new Vector2(data.startPoint.x, data.startPoint.y);
+        a.preset = data.preset;
+
         a.endTime = end_time;
         a.endPoint = new Vector2(x_value, y_value);
         a.distanceTravelled = movement_accumulator;
@@ -264,7 +275,7 @@ public class XmlParser
     {
         // It is not possible to just update data contained in the list.
         // It is necessary to create a new element, and then add it
-        Utility.AdaptiveData d = new Utility.AdaptiveData();
+        Utility.AdaptiveData a = new Utility.AdaptiveData();
 
         // Get data regarding the desired canID.
         // It is essential to use a lock in order to avoid race condition
@@ -275,18 +286,26 @@ public class XmlParser
         }
 
         // Many values needn't to be changed
-        d = data;
+        // d = data;
+        a.startTime = data.startTime; ;
+        a.startPoint = new Vector2(data.startPoint.x, data.startPoint.y);
+        a.preset = data.preset;
+        a.endTime = data.endTime;
+        a.endPoint = new Vector2(data.endPoint.x, data.endPoint.y);
+        a.distanceTravelled = data.distanceTravelled;
+        a.force = data.force;
+        a.forceAccumulated = data.forceAccumulated;
         // A duck has been hit
-        d.hasHit = true;
+        a.hasHit = true;
         // Keep track of the previously hit duck (if any)
-        d.ducksHit = new List<string>(data.ducksHit);
+        a.ducksHit = new List<string>(data.ducksHit);
         // Add the new one
-        d.ducksHit.Add(name);
+        a.ducksHit.Add(name);
 
         // Update element in the list
         lock (semaphore)
         {
-            adaptiveSteps[canId] = d;
+            adaptiveSteps[canId] = a;
         }
     }
 }
